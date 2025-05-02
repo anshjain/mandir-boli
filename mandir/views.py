@@ -426,7 +426,7 @@ def payment_complete(request):
                     record.save()
 
                 # update pan card into the account table
-                if pan_card:
+                if pan_card and "*" not in pan_card:
                     record.account.pan_card = pan_card
                     record.account.save()
 
