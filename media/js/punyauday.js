@@ -57,7 +57,7 @@ function display_model(record_id, amount, date, partial, pan_card){
     document.getElementById("phone_number").value = document.getElementById("pNumber").value;
 
     if (pan_card !== "None"){
-        document.getElementById("id_pan_card").value = pan_card;
+        document.getElementById("id_pan_card").value = '******' + pan_card.slice(6);
         document.getElementById("id_pan_card").readOnly = true;
     }
 }

@@ -167,5 +167,12 @@
       }
     drawChart();
     </script>
+    <script>
+        const panInput = document.getElementById('id_pan_card');
+
+        panInput.addEventListener('input', function () {
+            this.value = this.value.toUpperCase();
+        });
+    </script>
 
 {% endblock %}
