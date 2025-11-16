@@ -25,8 +25,16 @@ from account.models import Account
 from mandir.constants import DAILE_MSG, WHATSAPP_MSG
 from mandir.models import Mandir, Record
 from mandir.forms import SearchForm, EntryForm, ContactForm, PaymentForm, BoliRequestForm
-from mandir.utils import send_normal_sms
-
+from mandir.utils import (
+    send_normal_sms,
+    redirect_to_record,
+    build_payment_detail,
+    build_email_recipients,
+    compute_paid_amount,
+    update_records,
+    update_pan_card,
+    send_payment_email
+)
 
 Month_dict = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: "Jun",
               7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'}
@@ -88,7 +96,7 @@ class RecordListView(ListView):
         phone_number = self.request.GET.get('phone_number')
         if phone_number and len(phone_number) == 10:
             amt = self.model.objects.filter(account__phone_number__icontains=phone_number,
-                                                  paid=False, remaining_amt=0).aggregate(Sum('amount'))
+                                            paid=False, remaining_amt=0).aggregate(Sum('amount'))
             remaining_amt = self.model.objects.filter(account__phone_number__icontains=phone_number,
                                                       paid=False).aggregate(Sum('remaining_amt'))
             total_amt = amt['amount__sum'] or 0
@@ -207,7 +215,6 @@ class EntryCreateView(LoginRequiredMixin, FormView):
 
 
 class RaiseBoliCreateView(FormView):
-
     form_class = BoliRequestForm
     model = Record
     template_name = 'raise_boli_request.html'
@@ -304,10 +311,10 @@ def contact(request):
 
 def get_all_records(phone_number, record_ids=None):
     """
-    This method will take phone and record_ids to allow user to mark one or more then one record as paid
+    This method will take phone and record_ids to allow user to mark one or more than one record as paid
     Args:
         phone_number (string): Phone number.
-        records_id (list): in case user want to mark more then one as paid.
+        records_id (list): in case user want to mark more than one as paid.
 
     Return:
         name (string): user name
@@ -347,103 +354,79 @@ def get_all_records(phone_number, record_ids=None):
 def payment_complete(request):
     form_class = PaymentForm
 
-    # new logic!
     if request.method == 'POST':
         form = form_class(data=request.POST)
         phone_number = request.POST.get('phone_number')
+        record_id = request.POST.get('record_id')
 
-        if form.is_valid():
-            mod_pay = form.cleaned_data.get('payment_mode', '')
-            send_to = [form.cleaned_data.get('send_to', '')]
-            id_details = form.cleaned_data.get('id_details', '')
-            pan_card = form.cleaned_data.get('pan_card', '')
-            partial_payment = form.cleaned_data.get('partial_payment', 0)
-            record_id = request.POST.get('record_id')
-            flag = record_id != '01'
-            record_ids = record_id.split(",") if ',' in record_id else [record_id]
+        if not form.is_valid():
+            messages.error(request, f"There is something wrong: {form.errors}")
+            return redirect_to_record(phone_number)
 
-            try:
-                if record_id == '01':
-                    name, mandir, paid_amount, records = get_all_records(phone_number)
-                else:
-                    name, mandir, paid_amount, records = get_all_records(phone_number, record_ids)
+        # Extract form data
+        mod_pay = form.cleaned_data.get('payment_mode')
+        send_to = [form.cleaned_data.get('send_to')]
+        id_details = form.cleaned_data.get('id_details')
+        pan_card = form.cleaned_data.get('pan_card')
+        partial_payment = form.cleaned_data.get('partial_payment') or 0
+        remark = form.cleaned_data.get('remark')
 
-                # get record info
-                mandir_email = mandir.email
+        # derive record ids
+        record_ids = record_id.split(",") if not (record_id == '01') else None
 
-                # Email the profile with the
-                # contact information
-                template = get_template('payment_template.txt')
+        try:
+            # ---------- Load All Records ----------
+            name, mandir, paid_amount, records = get_all_records(
+                phone_number,
+                record_ids=record_ids
+            )
 
-                payment_detail = ''
-                if mod_pay == 'Online':
-                    payment_detail = 'Transaction Id: {}'.format(id_details)
-                elif mod_pay == 'Cheque':
-                    payment_detail = 'Cheque Number: {}'.format(id_details)
+            # ---------- Prepare Email Context ----------
+            mandir_email = mandir.email
+            send_to = build_email_recipients(send_to, mandir_email)
 
-                if flag:
-                    # calculate based on partial payment percentage:
-                    if partial_payment:
-                        paid_amount = int(partial_payment)
-                    elif records[0].remaining_amt:
-                        paid_amount = records[0].remaining_amt
+            payment_detail = build_payment_detail(mod_pay, id_details)
+            paid_amount = compute_paid_amount(records, partial_payment)
 
-                context = {
-                    'name': name,
-                    'mod_pay': mod_pay,
-                    'payment_detail': payment_detail,
-                    'amount': paid_amount,
-                    'mandir': mandir,
-                    'records': records,
-                    'remark': form.cleaned_data.get('remark'),
-                }
+            context = {
+                'name': name,
+                'mod_pay': mod_pay,
+                'payment_detail': payment_detail,
+                'amount': paid_amount,
+                'mandir': mandir,
+                'records': records,
+                'remark': remark,
+            }
 
-                content = template.render(context)
+            # Render email message
+            template = get_template('payment_template.txt')
+            content = template.render(context)
 
-                send_to.append(mandir_email)
-                send_to.extend(settings.ADMIN_EMAILS)
-                payment_date = datetime.now()
+            # ---------- Update Each Record ----------
+            payment_date = datetime.now()
 
-                for record in records:
-                    if partial_payment:
-                        partial_string = "Date: {} Amount: {}<br />".format(payment_date.date(), paid_amount)
-                        partial_flag = record.remaining_amt == paid_amount
-                        if not record.remaining_amt:
-                            record.remaining_amt = record.amount - paid_amount
-                            record.description = "Payment breakdown<br/> {}".format(partial_string)
-                        else:
-                            record.remaining_amt -= paid_amount
-                            record.description += partial_string
-                    else:
-                        # update record mark it as paid and store email content as copy in description.
-                        record.description = content
+            update_records(
+                records=records,
+                paid_amount=paid_amount,
+                partial_payment=partial_payment,
+                payment_date=payment_date,
+                transaction_id=id_details,
+                email_content=content
+            )
 
-                    if not partial_payment or partial_flag:
-                        record.paid = True
+            # ---------- Update PAN card ----------
+            update_pan_card(records, pan_card)
 
-                    record.transaction_id = id_details if id_details else 'Cash'
-                    record.payment_date = payment_date
-                    record.save()
+            # ---------- Send Email ----------
+            from_email = f"{mandir.name} <{mandir.email}>"
+            send_payment_email(from_email, content, send_to)
 
-                # update pan card into the account table
-                if pan_card and "*" not in pan_card:
-                    record.account.pan_card = pan_card
-                    record.account.save()
+        except Exception as e:
+            messages.error(request, "Error updating the record. Please contact admin.")
+            # Optional: log exception
+            print("PAYMENT ERROR:", e)
 
-                email = EmailMessage(
-                    "Thanks for the Payment", content,
-                    mandir.name, send_to
-                )
-                email.content_subtype = "html"
-                email.send()
-
-            except Exception:
-                messages.error(request, "There is some error in updating the record, Please contact admin !!")
-        else:
-            messages.error(request, "There is something wrong, {}". format(form.errors))
-
-    url = reverse('record-list') + "?phone_number={}#record".format(phone_number)
-    return HttpResponseRedirect(url)
+    return redirect_to_record(phone_number)
 
 
 class AboutView(TemplateView):

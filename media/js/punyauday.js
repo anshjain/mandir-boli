@@ -57,7 +57,7 @@ function display_model(record_id, amount, date, partial, pan_card){
     document.getElementById("phone_number").value = document.getElementById("pNumber").value;
 
     if (pan_card !== "None"){
-        document.getElementById("id_pan_card").value = '******' + pan_card.slice(6);
+        document.getElementById("id_pan_card").value = '********';
         document.getElementById("id_pan_card").readOnly = true;
     }
 }
@@ -162,7 +162,10 @@ function update(mandir) {
         // Subtract value from running_total
         running_total -= parseInt(mandir.value);
         document.getElementById('chk_total').textContent = running_total;
-        paid_ids.removeByValue(mandir.id)
+        let index = paid_ids.indexOf(mandir.id);  // find the index of mandir.id
+        if (index !== -1) {
+            paid_ids.splice(index, 1);      // remove it
+        }
         document.getElementById('smtArrId').value = paid_ids;
         if (running_total == 0){
             document.getElementById("chb_amt").disabled = true;
