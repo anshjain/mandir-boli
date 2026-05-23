@@ -1,40 +1,158 @@
 {% extends "base.html" %}
-
 {% load static i18n %}
-
 {% block title %}{% trans "Login" %}{% endblock %}
 
+{% block extra_css %}
+<style>
+.login-page {
+    background: linear-gradient(180deg, #FFFEF7 0%, #FDF6E3 100%);
+    min-height: calc(100vh - 200px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 48px 16px;
+}
+.login-card-wrap { width: 100%; max-width: 380px; }
+
+.login-brand { text-align: center; margin-bottom: 22px; }
+.login-brand .logo-circle {
+    display: inline-block;
+    width: 64px; height: 64px; border-radius: 50%;
+    overflow: hidden; border: 2px solid var(--c-yellow);
+    background: linear-gradient(135deg, #C9986A 0%, #8B6F47 100%);
+    margin-bottom: 12px;
+}
+.login-brand .logo-circle img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.login-brand .om {
+    display: block; line-height: 60px; font-size: 32px;
+    color: var(--c-yellow);
+}
+.login-brand h2 {
+    font-family: var(--font-head);
+    font-size: 24px; font-weight: 600;
+    color: var(--c-text); margin-bottom: 4px;
+}
+.login-brand p { font-size: 13px; color: var(--c-text-2); }
+
+.login-input-wrap {
+    position: relative;
+    display: flex; align-items: center;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius);
+    background: var(--c-white);
+    transition: border-color .15s, box-shadow .15s;
+}
+.login-input-wrap:focus-within {
+    border-color: var(--c-red);
+    box-shadow: 0 0 0 3px rgba(200,16,46,.08);
+}
+.login-input-wrap .ipre {
+    padding: 0 10px 0 12px; color: var(--c-text-3);
+    font-size: 15px;
+}
+.login-input-wrap input {
+    flex: 1; border: none !important; outline: none;
+    padding: 10px 12px 10px 0 !important;
+    font-size: 14px; background: transparent !important;
+    box-shadow: none !important;
+}
+.login-input-wrap .eye {
+    background: none; border: none; cursor: pointer;
+    padding: 0 12px; color: var(--c-text-3); font-size: 14px;
+}
+.login-input-wrap .eye:hover { color: var(--c-red); }
+
+.login-help {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: var(--c-white);
+    border: 0.5px solid var(--c-border);
+    border-radius: var(--radius);
+    font-size: 12px; color: var(--c-text-2);
+}
+.login-help .lbl {
+    font-size: 10px; color: var(--c-yellow-d);
+    letter-spacing: 0.5px; font-weight: 600;
+    margin-bottom: 8px;
+}
+.login-help .row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 5px;
+}
+.login-help .row:last-child { margin-bottom: 0; }
+.login-help i { font-size: 13px; width: 14px; }
+.login-help .ph { color: var(--c-green); }
+.login-help .em { color: var(--c-blue); }
+.login-help a { color: var(--c-blue); }
+</style>
+{% endblock %}
+
 {% block main %}
-    <div class="w3-container w3-content w3-padding-64" style="max-width:800px" id="login">
-        <h2 class="w3-wide w3-center">LOGIN</h2>
-        <p class="w3-opacity w3-center"><i> Jai Jinendra </i></p>
-        {% if form.errors %}
-            <p class="w3-opacity w3-center" style="color:red;"><i>
-                Please enter a correct username and password. Note that both fields may be case-sensitive
-            </i></p>
-        {% endif %}
-        <div class="w3-row w3-padding-32">
-            <div class="w3-col m6 w3-large w3-margin-bottom">
-                <i class="fa fa-map-marker" style="width:30px"></i> Pune, India<br>
-                <i class="fa fa-phone" style="width:30px"></i> Phone: +91 9552105933 <br>
-                <i class="fa fa-envelope" style="width:30px"> </i> Email: jain.scs@gmail.com<br>
+<div class="login-page" id="login">
+    <div class="login-card-wrap">
+        <div class="login-brand">
+            <div class="logo-circle">
+                {% if mandirs.0.logo %}
+                    <img src="{{ mandirs.0.logo.url }}" alt="{{ mandirs.0.name }}">
+                {% else %}
+                    <span class="om">ॐ</span>
+                {% endif %}
             </div>
-            <div class="w3-col m6">
+            <h2>Welcome back</h2>
+            <p>Sign in to manage temple records</p>
+        </div>
+
+        {% if form.errors %}
+        <div class="msg msg-error">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Incorrect username or password. Both are case-sensitive.</span>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-body">
                 <form method="post" action="{% url 'login' %}#login">
                     {% csrf_token %}
-                    <div class="w3-row-padding" style="margin:0 -16px 8px -16px">
-                        <div class="w3-half">
-                            <input placeholder="Username" name="username" required id="id_username" class="w3-input w3-border">
-                            {{ form.username.errors }}
+                    <div class="form-field">
+                        <label>Username</label>
+                        <div class="login-input-wrap">
+                            <span class="ipre"><i class="fas fa-user"></i></span>
+                            <input type="text" name="username" id="id_username" required placeholder="Enter username" autocomplete="username">
                         </div>
-                        <div class="w3-half">
-                            <input placeholder="password" type="password" name="password" required id="id_password" class="w3-input w3-border">
-                            {{ form.password.errors }}
-                        </div>
+                        {{ form.username.errors }}
                     </div>
-                    <button class="w3-button w3-black w3-section w3-right" type="submit">LOGIN</button>
+                    <div class="form-field">
+                        <label>Password</label>
+                        <div class="login-input-wrap">
+                            <span class="ipre"><i class="fas fa-lock"></i></span>
+                            <input type="password" name="password" id="id_password" required placeholder="Enter password" autocomplete="current-password">
+                            <button type="button" class="eye" aria-label="Show password" onclick="togglePw()"><i class="fas fa-eye" id="pwIcon"></i></button>
+                        </div>
+                        {{ form.password.errors }}
+                    </div>
+                    <button class="btn btn-primary btn-block" type="submit"><i class="fas fa-sign-in-alt"></i> Sign in</button>
                 </form>
             </div>
         </div>
+
+        <div class="login-help">
+            <div class="lbl">NEED HELP?</div>
+            <div class="row">
+                <i class="fas fa-phone ph"></i>
+                <span>+91 9552 105 933</span>
+            </div>
+            <div class="row">
+                <i class="fas fa-envelope em"></i>
+                <a href="mailto:jain.scs@gmail.com">jain.scs@gmail.com</a>
+            </div>
+        </div>
     </div>
+</div>
+
+<script>
+function togglePw() {
+    var p = document.getElementById('id_password');
+    var i = document.getElementById('pwIcon');
+    if (p.type === 'password') { p.type = 'text';     i.className = 'fas fa-eye-slash'; }
+    else                       { p.type = 'password'; i.className = 'fas fa-eye'; }
+}
+</script>
 {% endblock %}

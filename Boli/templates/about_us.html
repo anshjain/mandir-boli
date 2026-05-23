@@ -1,41 +1,66 @@
 {% extends "base.html" %}
-
 {% load static i18n %}
-
 {% block title %}{% trans "About Us" %}{% endblock %}
 
+{% block extra_css %}
+<style>
+.about-page { padding: 28px 0 60px; max-width: 720px; margin: 0 auto; }
+.about-hero { text-align: center; margin-bottom: 28px; }
+.about-hero .om { font-size: 48px; display: block; margin-bottom: 10px; }
+.about-hero h1 { font-family: var(--font-head); font-size: 32px; font-weight: 700; color: var(--c-text); margin-bottom: 4px; }
+.about-hero p { font-size: 14px; color: var(--c-text-3); }
+.about-section { margin-bottom: 20px; }
+.about-section h2 { font-family: var(--font-head); font-size: 18px; font-weight: 700; color: var(--c-text); margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--c-border); }
+.about-section p { font-size: 14px; color: var(--c-text-2); line-height: 1.75; margin-bottom: 10px; }
+.about-section p:last-child { margin-bottom: 0; }
+em.hl { color: var(--c-red); font-style: normal; font-weight: 600; }
+.founders { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 4px; }
+.founder { text-align: center; }
+.founder img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 2px solid var(--c-border); margin-bottom: 6px; }
+.founder p { font-size: 13px; font-weight: 600; color: var(--c-text-2); }
+@media (max-width: 480px) { .founders { grid-template-columns: 1fr 1fr; } }
+</style>
+{% endblock %}
+
 {% block main %}
-    <!-- The about us Section -->
-    <div class="w3-container w3-content w3-center w3-padding-64" style="max-width:800px" id="about-us">
-        <h2 class="w3-wide">ABOUT US</h2>
-        <p class="w3-opacity"><i>Jai Jinendra</i></p>
-        <p class="w3-justify">
-            PunyaUday fund is establish by <i>{{mandir.name}}</i> on the day of 50th <i> achrya Shree  Vidyasagar </i> Maharaj Diksha divas (i.e. <u>30th June 2018</u>) at sus gaon pune. <br/>
-            The main motto behind this website is to keep track of funds, which temple is going to receive in future and provide a convenient way for end user to monitor and view the fund status.
-            This will be the convenient way to raise funds for temple and help to avoid negligence of funds.
-        </p>
-        <p class="w3-opacity" style="float: left; color: darkgreen;"><b><i>How it work :</i></b></p><br />
-        <p class="w3-justify">
-            User can search his unpaid donation information by using registered <i>"phone number"</i>, it will list down all donation information which are not paid yet.
-            corresponding to registered temples. <br />
-            Once the list is fetched user can select the checkbox against it and send a message using send link against the row,
-            Please do mention the mode of payment (i.e. <b style="color:blue"><i>Online</i></b> or <b style="color:blue"><i>Cash</i></b>) and amount, If you paid online then please do mention <b style="color:blue"><i>transaction ID</i></b> as well,
-            this will help admin to track you information and avoid discrepancy.
-        </p>
-        <div class="w3-row w3-padding-32">
-            <p class="w3-opacity"><b><i>Founder Members</i></b></p>
-            <div class="w3-third">
-                <p>Priya Jain</p>
-                <img src="{% static '/images/author/priya-jain.jpg' %}" class="w3-round w3-margin-bottom" alt="Priya Jain" style="width:60%">
+<div class="container">
+<div class="about-page" id="about-us">
+    <div class="about-hero">
+        <span class="om">ꣽ</span>
+        <h1>About Us</h1>
+        <p>PunyaUday Fund — Jai Jinendra</p>
+    </div>
+    <div class="card" style="margin-bottom:20px;">
+        <div class="card-body">
+            <div class="about-section">
+                <h2>Our Story</h2>
+                <p>PunyaUday fund was established by <em class="hl">{{ mandir.name }}</em> on the day of the 50th <em class="hl">Acharya Shree Vidyasagar</em> Maharaj Diksha Divas (30th June 2018) at Sus Gaon, Pune.</p>
+                <p>The main purpose of this platform is to track funds the temple will receive in future, and to give devotees a convenient way to monitor their donations — avoiding any negligence of funds.</p>
             </div>
-            <div class="w3-third">
-                <p>Sankul Jain</p>
-                <img src="{% static '/images/author/sankul.JPG' %}" class="w3-round w3-margin-bottom" alt="Sankul Jain" style="width:60%">
+            <div class="about-section">
+                <h2>How It Works</h2>
+                <p>Search your pending donations using your registered <em class="hl">phone number</em>. All unpaid records will be listed for you.</p>
+                <p>Once fetched, select a record and use the WhatsApp or SMS link to notify the admin. Please mention the mode of payment (<strong>Online</strong> or <strong>Cash</strong>) and if online, the <strong>Transaction ID</strong> to help avoid discrepancies.</p>
             </div>
-            <div class="w3-third">
-                <p>Shreeyansh Jain</p>
-                <img src="{% static '/images/author/shreeyansh-jain.jpg' %}" class="w3-round" alt="Shreeyansh Jain" style="width:60%">
-            </div>
+            <!-- <div class="about-section">
+                <h2>Founder Members</h2>
+                <div class="founders">
+                    <div class="founder">
+                        <img src="{% static '/images/author/priya-jain.jpg' %}" alt="Priya Jain">
+                        <p>Priya Jain</p>
+                    </div>
+                    <div class="founder">
+                        <img src="{% static '/images/author/sankul.JPG' %}" alt="Sankul Jain">
+                        <p>Sankul Jain</p>
+                    </div>
+                    <div class="founder">
+                        <img src="{% static '/images/author/shreeyansh-jain.jpg' %}" alt="Shreeyansh Jain">
+                        <p>Shreeyansh Jain</p>
+                    </div>
+                </div>
+            </div>-->
         </div>
     </div>
+</div>
+</div>
 {% endblock %}
