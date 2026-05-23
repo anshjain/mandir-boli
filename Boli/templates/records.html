@@ -157,6 +157,15 @@
 .rec-mark:hover { border-color: var(--c-red); color: var(--c-red); }
 .rec-mark input { accent-color: var(--c-red); width: 14px; height: 14px; cursor: pointer; }
 
+.rec-partial-lbl {
+    background: var(--c-yellow-l) !important;
+    border-color: var(--c-yellow) !important;
+    color: var(--c-yellow-d) !important;
+    font-weight: 600;
+}
+.rec-partial-lbl:hover { background: var(--c-yellow) !important; color: var(--c-white) !important; }
+.rec-partial-lbl input { accent-color: var(--c-yellow-d); }
+
 .rec-notify {
     display: flex; gap: 6px; margin-top: 8px;
 }
@@ -313,6 +322,13 @@
     font-size: 11px;
 }
 .rec-mtbl .mtbl-check:hover { border-color: var(--c-red); color: var(--c-red); }
+.rec-mtbl .mtbl-partial {
+    background: var(--c-yellow-l); border: 0.5px solid var(--c-yellow);
+    padding: 5px 7px; border-radius: 5px;
+    color: var(--c-yellow-d); cursor: pointer;
+    font-size: 11px; font-weight: 600;
+}
+.rec-mtbl .mtbl-partial:hover { background: var(--c-yellow); color: var(--c-white); }
 
 @media (max-width: 700px) {
     .rec-grid { grid-template-columns: 1fr; }
@@ -393,7 +409,7 @@
             <div class="rec-head">
                 <div>
                     <span class="rec-title-pill">{{ record.get_title }}</span>
-                    <div class="rec-date">{{ record.boli_date|date }}</div>
+                    <div class="rec-date">{{ record.boli_date|date:'d M Y' }}</div>
                     {% if phone_number %}
                     <div class="rec-mandir">{{ record.mandir.name }}</div>
                     {% endif %}
@@ -419,8 +435,10 @@
                 {% endif %}
             </div>
 
-            {% if record.remaining_amt and phone_number %}
-            <div class="rec-orig">Original ₹{{ record.amount }} · partial paid</div>
+            {% if record.remaining_amt %}
+            <div class="rec-orig">
+                <strong>Original ₹{{ record.amount }}</strong> · partial paid
+            </div>
             {% endif %}
 
             {% if phone_number %}
@@ -435,15 +453,15 @@
                     <button class="gpay-btn" onclick="openGooglePay({% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %})" aria-label="Pay via GPay">
                         <img src="{% static 'images/gpay.svg' %}" alt="GPay">
                     </button>
-                    <button class="rec-mark" onclick="display_model('{{ record.id }}','{% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %}','{{ record.boli_date|date }}','None','{{ record.account.pan_card }}')" aria-label="Mark paid">
+                    <button class="rec-mark" onclick="display_model('{{ record.id }}','{% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %}','{{ record.boli_date|date:'d M Y' }}','None','{{ record.account.pan_card }}')" aria-label="Mark paid">
                         <i class="fas fa-check"></i>
                     </button>
                 </div>
-                {% if record.amount > 5001 %}{% if not record.remaining_amt or record.remaining_amt > 5001 %}
-                <label class="rec-mark" style="margin-top: 6px; justify-content: center;">
+                {% if record.amount > 1 %}{% if not record.remaining_amt or record.remaining_amt > 1 %}
+                <label class="rec-mark rec-partial-lbl" style="margin-top: 6px; justify-content: center;">
                     <input type="checkbox"
-                        onclick="display_model('{{ record.id }}','{% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %}','{{ record.boli_date|date }}','PP','{{ record.account.pan_card }}')">
-                    Partial payment
+                        onclick="display_model('{{ record.id }}','{% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %}','{{ record.boli_date|date:'d M Y' }}','PP','{{ record.account.pan_card }}')">
+                    <i class="fas fa-coins" style="margin-right:4px;"></i> Partial payment
                 </label>
                 {% endif %}{% endif %}
                 {% endif %}
@@ -483,7 +501,7 @@
                 <tr class="{% if record.paid %}is-paid{% endif %}">
                     <td>
                         <div class="mtbl-title">{{ record.get_title }}</div>
-                        <div class="mtbl-date">{{ record.boli_date|date }}</div>
+                        <div class="mtbl-date">{{ record.boli_date|date:'d M Y' }}</div>
                         <div class="mtbl-date">{{ record.mandir.name }}</div>
                     </td>
                     <td>
@@ -503,9 +521,14 @@
                             <button class="mtbl-gpay" onclick="openGooglePay({% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %})" aria-label="Pay via GPay">
                                 <img src="{% static 'images/gpay.svg' %}" alt="GPay">
                             </button>
-                            <button class="mtbl-check" onclick="display_model('{{ record.id }}','{% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %}','{{ record.boli_date|date }}','None','{{ record.account.pan_card }}')" aria-label="Mark paid">
+                            <button class="mtbl-check" onclick="display_model('{{ record.id }}','{% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %}','{{ record.boli_date|date:'d M Y' }}','None','{{ record.account.pan_card }}')" aria-label="Mark paid">
                                 <i class="fas fa-check"></i>
                             </button>
+                            {% if record.amount > 1 %}{% if not record.remaining_amt or record.remaining_amt > 1 %}
+                            <button class="mtbl-partial" onclick="display_model('{{ record.id }}','{% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %}','{{ record.boli_date|date:'d M Y' }}','PP','{{ record.account.pan_card }}')" aria-label="Partial payment" title="Partial payment">
+                                <i class="fas fa-coins"></i>
+                            </button>
+                            {% endif %}{% endif %}
                         </div>
                         {% else %}
                         <span style="font-size:11px;color:var(--c-text-3);">—</span>
@@ -530,7 +553,7 @@
             <button id="chb_amt"
                 onclick="display_model(document.getElementById('smtArrId').value,
                     document.getElementById('chk_total').textContent.replace('₹',''),
-                    '{{ records.0.boli_date|date }}','None','{{ records.0.account.pan_card }}')">
+                    '{{ records.0.boli_date|date:'d M Y' }}','None','{{ records.0.account.pan_card }}')">
                 Pay selected
             </button>
             <button class="gpay-banner-btn" onclick="openGooglePay(document.getElementById('chk_total').textContent.replace('₹',''))">
@@ -579,13 +602,13 @@
                 {% csrf_token %}
                 <input type="hidden" id="record_id" name="record_id">
                 <input type="hidden" id="phone_number" name="phone_number">
-                <div class="form-field">
+                <div class="form-field" id="ff_partial_payment" style="display:none;">
                     <label>Partial Payment Amount</label>{{ payment_form.partial_payment }}
                 </div>
                 <div class="form-field">
                     <label>Payment Mode</label>{{ payment_form.payment_mode }}
                 </div>
-                <div class="form-field">
+                <div class="form-field" id="ff_id_details" style="display:none;">
                     <label>Transaction / Reference ID</label>{{ payment_form.id_details }}
                 </div>
                 <div class="form-field">
@@ -613,7 +636,7 @@
             <div class="confirm-amt">₹<span id="confirm_val">0</span></div>
             <div class="confirm-btns">
                 <button class="confirm-no" onclick="closeConfirmationModel()">Cancel</button>
-                <button class="confirm-yes" onclick="openModelBox('01','{{ total_amt }}','{{ records.0.boli_date|date }}','None','{{ records.0.account.pan_card }}')">Yes, Proceed</button>
+                <button class="confirm-yes" onclick="openModelBox('01','{{ total_amt }}','{{ records.0.boli_date|date:'d M Y' }}','None','{{ records.0.account.pan_card }}')">Yes, Proceed</button>
             </div>
         </div>
     </div>

@@ -19,7 +19,7 @@ admin.site.site_title = 'PunyaUday Fund admin'
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^accounts/login/$', LoginView.as_view(template_name='login.html'), name="login"),
-    url(r'^accounts/logout/$', LogoutView.as_view(template_name='base.html'), name="logout"),
+    url(r'^accounts/logout/$', LogoutView.as_view(next_page='/'), name="logout"),
     url(r'^$', HomeView.as_view(), name='home'),
     url(r'^search/$', RecordListView.as_view(), name='record-list'),
     url(r'^add/$', EntryCreateView.as_view(), name='add-record'),

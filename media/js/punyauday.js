@@ -19,30 +19,79 @@ window.addEventListener('click', function(e) {
 });
 
 var running_total = 0, paid_ids = [];
+var _modal_original_amount = 0;  // tracked for partial-payment math
 
 function display_model(record_id, amount, date, partial, pan_card) {
     var modal = document.getElementById('EmailModal');
     if (!modal) return;
     document.getElementById('record_id').value = record_id;
     modal.classList.add('open');
+
+    var ffPartial = document.getElementById('ff_partial_payment');
     var partInput = document.getElementById('id_partial_payment');
-    var amtSpan  = document.getElementById('amount_val');
-    var orgSpan  = document.getElementById('org_amount_val');
-    var dateSpan = document.getElementById('boli_date');
-    var phoneHid = document.getElementById('phone_number');
-    var pNum     = document.getElementById('pNumber');
+    var amtSpan   = document.getElementById('amount_val');
+    var orgSpan   = document.getElementById('org_amount_val');
+    var dateSpan  = document.getElementById('boli_date');
+    var phoneHid  = document.getElementById('phone_number');
+    var pNum      = document.getElementById('pNumber');
+
+    var amtNum = parseFloat(amount) || 0;
+    _modal_original_amount = amtNum;
+
     if (partial === 'PP') {
-        if (partInput) { partInput.style.display = 'block'; partInput.required = true; }
-        if (amtSpan) amtSpan.innerHTML = '0.00';
+        // Partial payment: show input, start "amount paid" at 0
+        if (ffPartial) ffPartial.style.display = 'block';
+        if (partInput) { partInput.required = true; partInput.value = ''; }
+        if (amtSpan)   amtSpan.innerHTML = '0.00';
     } else {
-        if (partInput) { partInput.style.display = 'none'; partInput.required = false; }
-        if (amtSpan) amtSpan.innerHTML = amount + '.00';
+        // Full payment: hide partial input, show full amount as paid
+        if (ffPartial) ffPartial.style.display = 'none';
+        if (partInput) { partInput.required = false; partInput.value = ''; }
+        if (amtSpan)   amtSpan.innerHTML = amtNum.toFixed(2);
     }
-    if (orgSpan) orgSpan.innerHTML = amount + '.00';
+    if (orgSpan)  orgSpan.innerHTML  = amtNum.toFixed(2);
     if (dateSpan) dateSpan.innerHTML = date;
     if (phoneHid && pNum) phoneHid.value = pNum.value;
+
+    // Reset payment mode UI to default (Cash → hide transaction id)
+    var modeSel = document.getElementById('id_payment_mode');
+    if (modeSel) modeSel.value = 'Cash';
+    var ffId = document.getElementById('ff_id_details');
+    if (ffId) ffId.style.display = 'none';
+
     var panField = document.getElementById('id_pan_card');
-    if (panField && pan_card !== 'None') { panField.value = '********'; panField.readOnly = true; }
+    if (panField && pan_card && pan_card !== 'None' && pan_card !== '') {
+        panField.value = '********'; panField.readOnly = true;
+    } else if (panField) {
+        panField.value = ''; panField.readOnly = false;
+    }
+}
+
+// Toggle transaction-id field based on selected payment mode
+function payment_md() {
+    var modeSel = document.getElementById('id_payment_mode');
+    var ffId    = document.getElementById('ff_id_details');
+    if (!modeSel || !ffId) return;
+    if (modeSel.value === 'Cash') {
+        ffId.style.display = 'none';
+    } else {
+        ffId.style.display = 'block';
+    }
+}
+
+// Recalculate "Amount Paid" display as the user types into the partial-payment input
+function payment_cal() {
+    var partInput = document.getElementById('id_partial_payment');
+    var amtSpan   = document.getElementById('amount_val');
+    if (!partInput || !amtSpan) return;
+    var v = parseFloat(partInput.value);
+    if (isNaN(v) || v < 0) v = 0;
+    if (v > _modal_original_amount) {
+        // Don't let user pay more than the outstanding amount
+        v = _modal_original_amount;
+        partInput.value = v;
+    }
+    amtSpan.innerHTML = v.toFixed(2);
 }
 
 function close_update() {

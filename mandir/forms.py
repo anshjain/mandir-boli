@@ -25,60 +25,55 @@ class SearchForm(forms.Form):
 
 
 class EntryForm(forms.Form):
-    title = forms.ModelChoiceField(widget=forms.Select(attrs={'class': 'w3-input w3-border',
-                                                              'style': 'height: 45px; margin-left:6px; width:98%'}),
+    title = forms.ModelChoiceField(widget=forms.Select(attrs={'class': 'form-input'}),
                                    queryset=BoliChoice.objects.all(), required=True)
     phone_number = forms.RegexField(regex=r'^\+?1?\d{9,15}$', max_length=10, min_length=10,
                                     widget=forms.NumberInput(
                                         attrs={'placeholder': 'Phone Number',
-                                               'autocomplete': 'off', 'class': 'w3-input w3-border',
+                                               'autocomplete': 'off', 'class': 'form-input',
                                                'onkeyup': "javascript:get_description();"}),
                                     error_messages={
                                         'required': "Phone number must be entered in the format: '9999999999'"
                                     })
 
     description = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Description', 'autocomplete': 'off',
-                                                               'class': 'w3-input w3-border', 'rows': '3'}))
+                                                               'class': 'form-input', 'rows': '3'}))
     amount = forms.CharField(widget=forms.NumberInput(attrs={'placeholder': 'Amount', 'autocomplete': 'off',
-                                                             'class': 'w3-input w3-border',
-                                                             'style': 'margin: 27px 8px 0px 7px; width:98%'}))
+                                                             'class': 'form-input'}))
     boli_date = forms.DateField(initial=datetime.datetime.today().date(),
                                 widget=forms.DateInput(attrs={'autocomplete': 'off',
-                                                              'class': 'w3-input w3-border datepicker'})
+                                                              'class': 'form-input datepicker'})
     )
 
 
 class BoliRequestForm(forms.Form):
 
-    vrat_name = forms.ModelChoiceField(widget=forms.Select(attrs={'class': 'w3-input w3-border',
-                                                                  'style': 'height: 45px; margin-left:6px; width:98%'}),
+    vrat_name = forms.ModelChoiceField(widget=forms.Select(attrs={'class': 'form-input'}),
                                        queryset=VratDetail.objects.filter(enabled=True).order_by('vrat_date'),
                                        required=True)
-    title = forms.ModelChoiceField(widget=forms.Select(attrs={'class': 'w3-input w3-border',
-                                                              'style': 'height: 45px; margin-left:6px; width:98%'}),
+    title = forms.ModelChoiceField(widget=forms.Select(attrs={'class': 'form-input'}),
                                    queryset=BoliChoice.objects.filter(request_choice=True), required=True)
     phone_number = forms.RegexField(regex=r'^\+?1?\d{9,15}$', max_length=10, min_length=10,
                                     widget=forms.NumberInput(
                                         attrs={'placeholder': 'Phone Number',
-                                               'autocomplete': 'off', 'class': 'w3-input w3-border',
+                                               'autocomplete': 'off', 'class': 'form-input',
                                                'onkeyup': "javascript:get_description();"}),
                                     error_messages={
                                         'required': "Phone number must be entered in the format: '9999999999'"
                                     })
 
     description = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Enter comma separated names.',
-                                                               'autocomplete': 'off', 'class': 'w3-input w3-border',
+                                                               'autocomplete': 'off', 'class': 'form-input',
                                                                'rows': '3'}))
     amount = forms.CharField(widget=forms.NumberInput(attrs={
         'placeholder': 'Minimum Amount 500', 'autocomplete': 'off',
-        'class': 'w3-input w3-border', 'style': 'margin: 27px 8px 0px 7px; width:98%'}))
+        'class': 'form-input'}))
     # date = datetime.datetime.today().date() + datetime.timedelta(days=1)
     # boli_date = forms.DateField(initial=date,
     #                             widget=forms.DateInput(attrs={'autocomplete': 'off',
     #                                                           'class': 'w3-input w3-border datepicker'})
     # )
-    captcha = CaptchaField(widget=CustomCaptchaTextInput(attrs={'class': 'w3-input w3-border',
-                                                                'style': 'margin: 18px 8px 0px 7px; width:98%'}))
+    captcha = CaptchaField(widget=CustomCaptchaTextInput(attrs={'class': 'form-input'}))
 
     def clean(self):
         """
@@ -93,56 +88,55 @@ class BoliRequestForm(forms.Form):
 
 class ContactForm(forms.Form):
     contact_name = forms.CharField(required=True, widget=forms.TextInput(
-        attrs={'placeholder': 'Name', 'autocomplete': 'off', 'class': 'w3-input w3-border'}
+        attrs={'placeholder': 'Name', 'autocomplete': 'off', 'class': 'form-input'}
     ))
 
     contact_email = forms.EmailField(required=True, widget=forms.EmailInput(
-        attrs={'placeholder': 'Email', 'autocomplete': 'off', 'class': 'w3-input w3-border'}
+        attrs={'placeholder': 'Email', 'autocomplete': 'off', 'class': 'form-input'}
     ))
 
     message = forms.CharField(
         required=True, max_length="300",
         widget=forms.Textarea(attrs={
             'placeholder': 'Message', 'autocomplete': 'off',
-            'class': 'w3-input w3-border', 'rows': '2'
+            'class': 'form-input', 'rows': '2'
         })
     )
-    captcha = CaptchaField(widget=CustomCaptchaTextInput(attrs={'class': 'w3-input w3-border',
-                                                                'style': 'margin: 18px 8px 0px 7px; width:98%'}))
+    captcha = CaptchaField(widget=CustomCaptchaTextInput(attrs={'class': 'form-input'}))
 
 
 class PaymentForm(forms.Form):
 
     payment_mode = forms.ChoiceField(choices=PAYMENT_MODES, widget=forms.Select(
-        attrs={'class': 'w3-input w3-border', 'style': "height: 40px;", "onchange": "payment_md();"}
+        attrs={'class': 'form-input', "onchange": "payment_md();"}
     ))
 
     partial_payment = forms.CharField(required=False, widget=forms.NumberInput(
-        attrs={'placeholder': 'Paid Amount', 'autocomplete': 'off', 'class': 'w3-input w3-border',
-               'style': 'display:none', "onkeyup": "payment_cal();"}
+        attrs={'placeholder': 'Paid Amount', 'autocomplete': 'off', 'class': 'form-input',
+               'id': 'id_partial_payment', "onkeyup": "payment_cal();"}
     ))
 
     id_details = forms.CharField(required=False, widget=forms.TextInput(
-        attrs={'placeholder': 'Transaction Id / Cheque Number', 'autocomplete': 'off', 'class': 'w3-input w3-border',
-               'style': 'display:none'}
+        attrs={'placeholder': 'Transaction Id / Cheque Number', 'autocomplete': 'off',
+               'class': 'form-input', 'id': 'id_id_details'}
     ))
 
     send_to = forms.EmailField(widget=forms.EmailInput(
-        attrs={'placeholder': 'Enter your email address', 'autocomplete': 'off', 'class': 'w3-input w3-border'}
+        attrs={'placeholder': 'Enter your email address', 'autocomplete': 'off', 'class': 'form-input'}
     ))
 
     remark = forms.CharField(
         required=False, max_length="200",
         widget=forms.Textarea(attrs={
             'placeholder': 'Remark', 'autocomplete': 'off',
-            'class': 'w3-input w3-border', 'rows': '1'
+            'class': 'form-input', 'rows': '1'
         })
     )
 
     pan_card = forms.CharField(
         required=False, max_length="10",
-        widget=forms.Textarea(attrs={
+        widget=forms.TextInput(attrs={
             'placeholder': 'PAN card', 'autocomplete': 'off',
-            'class': 'w3-input w3-border', 'rows': '1'
+            'class': 'form-input', 'id': 'id_pan_card'
         })
     )
