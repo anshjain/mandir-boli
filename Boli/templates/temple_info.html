@@ -387,11 +387,17 @@
                 <div class="videos-row">
                     <div class="video-block">
                         <div class="video-label" id="vt0">Loading latest video…</div>
-                        <iframe class="latestVideoEmbed" vnum="0" cid="UCpwk-tdv5C1Y-AniYZFJPlA" frameborder="0" allowfullscreen></iframe>
+                        <iframe class="latestVideoEmbed" vnum="0" cid="UCpwk-tdv5C1Y-AniYZFJPlA"
+                                frameborder="0" allowfullscreen
+                                referrerpolicy="strict-origin-when-cross-origin"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
                     </div>
                     <div class="video-block">
                         <div class="video-label" id="vt1">Loading latest video…</div>
-                        <iframe class="latestVideoEmbed" vnum="1" cid="UCpwk-tdv5C1Y-AniYZFJPlA" frameborder="0" allowfullscreen></iframe>
+                        <iframe class="latestVideoEmbed" vnum="1" cid="UCpwk-tdv5C1Y-AniYZFJPlA"
+                                frameborder="0" allowfullscreen
+                                referrerpolicy="strict-origin-when-cross-origin"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
                     </div>
                 </div>
                 <div class="fb-wrapper">
@@ -490,10 +496,15 @@ function loadVideo(iframe) {
         if (!item || !item.link) return;
         var id = extractYouTubeId(item.link);
         if (!id) return;
-        // Use www.youtube.com (apex youtube.com is rejected by some CDNs)
-        // and the no-cookie host for better privacy + fewer player errors
-        iframe.setAttribute('src', 'https://www.youtube-nocookie.com/embed/' + id + '?rel=0&modestbranding=1');
-        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+        // origin= must match the parent page's origin so YouTube's player can
+        // verify the request via postMessage. Combined with the iframe's
+        // referrerpolicy="strict-origin-when-cross-origin" attribute, this
+        // resolves Error 153.
+        var origin = encodeURIComponent(window.location.protocol + '//' + window.location.host);
+        iframe.setAttribute('src',
+            'https://www.youtube.com/embed/' + id +
+            '?rel=0&modestbranding=1&origin=' + origin
+        );
         if (titleEl) titleEl.textContent = item.title;
     }).fail(function() {
         if (titleEl) titleEl.textContent = 'Video unavailable';
