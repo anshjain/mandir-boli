@@ -395,7 +395,7 @@
             {% endif %}
         </div>
         <div class="nav-brand-text">
-            <div class="nav-brand-name">{% if mandir.committee_name %}{{ mandir.committee_name }}{% elif mandir.name %}{{ mandir.name }}{% elif mandirs.0.committee_name %}{{ mandirs.0.committee_name }}{% elif mandirs.0.name %}{{ mandirs.0.name }}{% else %}Jain Mandir{% endif %}</div>
+            <div class="nav-brand-name">{% if mandir.name %}{{ mandir.name }}{% elif mandir.committee_name %}{{ mandir.committee_name }}{% elif mandirs.0.name %}{{ mandirs.0.name }}{% elif mandirs.0.committee_name %}{{ mandirs.0.committee_name }}{% else %}Jain Mandir{% endif %}</div>
             <div class="nav-brand-sub">JAI JINENDRA</div>
         </div>
     </a>
@@ -500,7 +500,7 @@
 
 <footer class="footer">
     <div class="footer-inner">
-        <div class="footer-name">ॐ नमः सिद्धेभ्यः</div>
+        <div class="footer-name">ꣽ नमः सिद्धेभ्यः</div>
         <div style="font-size: 13px; color: rgba(255,255,255,.55);">
             {% if mandirs.0.committee_name %}{{ mandirs.0.committee_name }}
             {% elif mandirs.0.name %}{{ mandirs.0.name }}

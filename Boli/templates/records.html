@@ -329,6 +329,13 @@
     font-size: 11px; font-weight: 600;
 }
 .rec-mtbl .mtbl-partial:hover { background: var(--c-yellow); color: var(--c-white); }
+.rec-mtbl .mtbl-check-col {
+    width: 28px; padding-left: 6px; padding-right: 0; text-align: center;
+}
+.rec-mtbl .mtbl-select {
+    width: 16px; height: 16px; accent-color: var(--c-red);
+    cursor: pointer; margin: 0;
+}
 
 @media (max-width: 700px) {
     .rec-grid { grid-template-columns: 1fr; }
@@ -491,6 +498,7 @@
         <table class="rec-mtbl">
             <thead>
                 <tr>
+                    <th class="mtbl-check-col" aria-label="Select"></th>
                     <th>Boli</th>
                     <th>Amount</th>
                     <th>Action</th>
@@ -499,6 +507,15 @@
             <tbody>
                 {% for record in records %}
                 <tr class="{% if record.paid %}is-paid{% endif %}">
+                    <td class="mtbl-check-col">
+                        {% if not record.paid %}
+                        <input type="checkbox" class="mtbl-select"
+                               id="m{{ record.id }}"
+                               value="{% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %}"
+                               onchange="update(this);"
+                               aria-label="Add to pay total">
+                        {% endif %}
+                    </td>
                     <td>
                         <div class="mtbl-title">{{ record.get_title }}</div>
                         <div class="mtbl-date">{{ record.boli_date|date:'d M Y' }}</div>
