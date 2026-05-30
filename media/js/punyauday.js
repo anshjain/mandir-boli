@@ -118,8 +118,48 @@ function update(checkbox) {
 
 function openGooglePay(amount) {
     var amt = String(amount).replace('₹','').trim();
-    if (amt && amt !== '0') window.open('upi://pay?pa=8799928255@mahb&pn=susdigamberjainmadir&am=' + amt + '&cu=INR','_blank');
-    else alert('Please select at least one record.');
+    if (!amt || amt === '0') { alert('Please select at least one record.'); return; }
+
+    var UPI_ID  = '8799928255@mahb';
+    var UPI_NAME = 'Sus%20Digambar%20Jain%20Mandir';
+    var upiUrl  = 'upi://pay?pa=' + UPI_ID + '&pn=' + UPI_NAME + '&am=' + amt + '&cu=INR';
+    var gpayUrl = 'https://pay.google.com/gp/v/send/' + UPI_ID + '?amount=' + amt + '&currencyCode=INR';
+
+    var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile) {
+        // On mobile: try the UPI deep-link (opens GPay / PhonePe / any UPI app)
+        window.location.href = upiUrl;
+    } else {
+        // On desktop: UPI deep-links don't work, so show a modal with QR + manual details
+        var existing = document.getElementById('_upi_desktop_modal');
+        if (existing) existing.remove();
+
+        var modal = document.createElement('div');
+        modal.id = '_upi_desktop_modal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:99999;font-family:sans-serif;';
+
+        var qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(upiUrl);
+
+        modal.innerHTML = [
+            '<div style="background:#fff;border-radius:12px;padding:28px 32px;max-width:360px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.25);">',
+            '  <h3 style="margin:0 0 4px;font-size:17px;color:#1a1a1a;">Pay via UPI</h3>',
+            '  <p style="margin:0 0 16px;font-size:13px;color:#555;">Scan with GPay, PhonePe, Paytm or any UPI app</p>',
+            '  <img src="' + qrSrc + '" alt="UPI QR Code" style="width:200px;height:200px;border:1px solid #eee;border-radius:8px;" />',
+            '  <div style="margin:16px 0 8px;padding:10px;background:#f5f5f5;border-radius:8px;font-size:13px;color:#333;">',
+            '    <div><strong>UPI ID:</strong> ' + UPI_ID + '</div>',
+            '    <div><strong>Amount:</strong> ₹' + amt + '</div>',
+            '    <div><strong>Name:</strong> Sus Digambar Jain Mandir</div>',
+            '  </div>',
+            '  <p style="font-size:11px;color:#888;margin:8px 0 16px;">After payment, please mark it as paid in the app.</p>',
+            '  <button id="_upi_close_btn" style="background:#4CAF50;color:#fff;border:none;padding:10px 28px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600;">Close</button>',
+            '</div>'
+        ].join('');
+
+        document.body.appendChild(modal);
+        document.getElementById('_upi_close_btn').onclick = function() { modal.remove(); };
+        modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+    }
 }
 
 function confirmationUserAction(amount) {
