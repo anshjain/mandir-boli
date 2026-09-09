@@ -1,125 +1,699 @@
 {% extends "base.html" %}
-
 {% load static i18n %}
 
 {% block title %}{% trans "Home" %}{% endblock %}
 
 {% block FBTag %}
-    <div id="fb-root"></div>
-    <script async defer crossorigin="anonymous"
-            src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v17.0&appId=1775753022522826&autoLogAppEvents=1"
-            nonce="0JWDtsDn">
-    </script>
+<div id="fb-root"></div>
+<script async defer crossorigin="anonymous"
+    src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v17.0&appId=1775753022522826&autoLogAppEvents=1"
+    nonce="0JWDtsDn"></script>
 {% endblock %}
 
 {% block extra_css %}
-    <style>
-      p#video-title {
-          font-weight: bold;
-          background: #ffc107;
-          padding: 5px 4px;
-          font-family: serif;
-          text-align: center;
-          display: block;
-          width: 70%;
-          margin: 0 auto;
-          margin-bottom: 20px;
-          margin-top: 20px;
-        }
+<style>
+.welcome-section {
+    background: linear-gradient(180deg, #FFFEF7 0%, #FDF6E3 100%);
+    padding: 28px 0 24px;
+    border-bottom: 0.5px solid var(--c-border);
+}
+.welcome-eyebrow {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 4px 13px; background: var(--c-white);
+    border: 0.5px solid var(--c-yellow); border-radius: 999px;
+    margin-bottom: 12px;
+}
+.welcome-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--c-green); }
+.welcome-eyebrow span { font-size: 11px; color: var(--c-text-2); letter-spacing: 0.4px; }
+.welcome-h1 {
+    font-family: var(--font-head);
+    font-size: 28px; font-weight: 600; color: var(--c-text);
+    margin-bottom: 6px;
+}
+.welcome-sub { font-size: 14px; color: var(--c-text-2); margin-bottom: 18px; line-height: 1.6; }
+.welcome-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
-      .latestVideoEmbed {
-        width: 100%;
-        height: 100%;
-      }
-    </style>
+.today-strip {
+    background: var(--c-yellow-bg);
+    border-bottom: 0.5px solid var(--c-border-soft);
+    padding: 12px 0;
+}
+.today-strip-inner {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 13px; flex-wrap: wrap;
+}
+.today-icon {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--c-green); color: var(--c-white);
+    display: grid; place-items: center; flex-shrink: 0;
+    font-size: 14px;
+}
+.today-strip-inner .lbl { color: var(--c-text-2); }
+.today-strip-inner .val { font-weight: 600; color: var(--c-text); }
+.today-strip-inner .sub { color: var(--c-text-3); }
+.today-link {
+    margin-left: auto;
+    font-size: 13px; font-weight: 500;
+    color: var(--c-blue); white-space: nowrap;
+}
 
+.home-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 22px;
+    padding: 28px 0 8px;
+}
+.section-label {
+    font-size: 11px; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--c-text-3);
+    font-weight: 600; margin-bottom: 10px;
+}
+
+.mandir-card {
+    background: var(--c-surface);
+    border: 0.5px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 18px;
+}
+.mandir-banner {
+    height: 140px;
+    background: linear-gradient(135deg, var(--c-green) 0%, var(--c-green-d) 100%);
+    position: relative;
+    display: flex; align-items: flex-end;
+    padding: 16px;
+    overflow: hidden;
+}
+.mandir-banner::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 40%, rgba(244,196,48,0.28) 0%, transparent 60%);
+}
+.mandir-banner-idol {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 78px; height: 78px;
+    border-radius: 50%;
+    border: 2px solid rgba(244,196,48,0.7);
+    overflow: hidden;
+    background: linear-gradient(135deg, #C9986A 0%, #8B6F47 100%);
+    display: grid; place-items: center;
+    font-size: 38px;
+}
+.mandir-banner-idol img { width: 100%; height: 100%; object-fit: cover; }
+.mandir-banner-content { position: relative; z-index: 1; }
+.mandir-banner-content h2 {
+    font-family: var(--font-head);
+    font-size: 19px; font-weight: 600; color: var(--c-white);
+    margin-bottom: 3px;
+}
+.mandir-banner-content .loc {
+    font-size: 12px; color: rgba(255,255,255,0.9);
+    display: inline-flex; align-items: center; gap: 5px;
+}
+
+.mandir-card-body { padding: 16px; }
+.mandir-desc {
+    font-size: 13px; color: var(--c-text-2);
+    line-height: 1.6; margin-bottom: 14px;
+}
+
+.tabs {
+    display: flex; gap: 4px;
+    border-bottom: 0.5px solid var(--c-border);
+    margin-bottom: 14px;
+}
+.tab {
+    padding: 7px 14px;
+    font-size: 12px; font-weight: 500;
+    color: var(--c-text-3); cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -0.5px;
+    background: none; border-top: none; border-left: none; border-right: none;
+    font-family: var(--font-body);
+    transition: color .15s, border-color .15s;
+}
+.tab:hover { color: var(--c-text-2); }
+.tab.active {
+    color: var(--c-red);
+    border-bottom-color: var(--c-red);
+    font-weight: 600;
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.info-row {
+    display: flex; align-items: center; gap: 11px;
+    padding: 7px 0; font-size: 13.5px;
+    color: var(--c-text);
+}
+.info-row i { width: 16px; flex-shrink: 0; font-size: 14px; }
+.info-row a { color: var(--c-blue); }
+.info-row a:hover { color: var(--c-red); }
+.info-row .label { color: var(--c-text-3); font-size: 11px; letter-spacing: .3px; text-transform: uppercase; min-width: 70px; }
+
+.map-embed {
+    border-radius: var(--radius); overflow: hidden;
+    border: 0.5px solid var(--c-border);
+    height: 220px;
+}
+
+.upcoming-card {
+    background: var(--c-surface);
+    border: 0.5px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+}
+.upcoming-item {
+    border-left: 3px solid var(--c-text-3);
+    padding-left: 12px;
+    margin-bottom: 14px;
+}
+.upcoming-item:last-child { margin-bottom: 0; }
+.upcoming-item.t-kalyanak { border-left-color: var(--c-yellow); }
+.upcoming-item.t-parv     { border-left-color: var(--c-green); }
+.upcoming-item.t-festival { border-left-color: var(--c-red); }
+.upcoming-date {
+    font-size: 11px; color: var(--c-text-3);
+    font-weight: 600; letter-spacing: 0.4px;
+}
+.upcoming-name {
+    font-size: 13px; color: var(--c-text);
+    margin-top: 2px; line-height: 1.4;
+}
+.upcoming-tag {
+    font-size: 11px; margin-top: 3px; font-weight: 500;
+}
+.upcoming-tag.t-kalyanak { color: var(--c-yellow-d); }
+.upcoming-tag.t-parv     { color: var(--c-green); }
+.upcoming-tag.t-festival { color: var(--c-red); }
+
+.cta-reminder {
+    background: var(--c-blue); color: var(--c-white);
+    padding: 13px 15px; border-radius: var(--radius);
+    font-size: 13px;
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none;
+}
+.cta-reminder:hover { background: var(--c-blue-d); color: var(--c-white); }
+.cta-reminder i { color: var(--c-yellow); font-size: 15px; }
+
+.media-section {
+    border-top: 0.5px solid var(--c-border);
+    margin-top: 28px; padding-top: 18px;
+}
+.media-section h3 {
+    font-family: var(--font-head);
+    font-size: 17px; font-weight: 600;
+    margin-bottom: 14px; color: var(--c-text);
+}
+.videos-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+.video-block {
+    border-radius: var(--radius); overflow: hidden;
+    border: 0.5px solid var(--c-border);
+    background: var(--c-surface);
+}
+.video-label {
+    padding: 8px 12px; font-size: 12px; font-weight: 500;
+    color: var(--c-text-2); background: var(--c-bg);
+    border-bottom: 0.5px solid var(--c-border);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.video-block iframe { width: 100%; height: 190px; display: block; border: none; }
+.fb-center { display: flex; justify-content: center; margin-bottom: 8px; }
+
+
+/* ── Promotions sidebar ── */
+.promo-wrap { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
+
+.promo-card {
+    background: var(--c-surface);
+    border: 0.5px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+/* Full-width image with fixed aspect ratio */
+/* Image thumbnail — full image visible, click opens lightbox */
+.promo-card-img-wrap {
+    width: 100%;
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+}
+.promo-card-img-wrap img {
+    width: 100%;
+    max-height: 320px;
+    object-fit: contain;
+    display: block;
+    transition: transform .2s ease;
+}
+.promo-card-img-wrap:hover img { transform: scale(1.02); }
+
+/* Zoom hint */
+.promo-img-hint {
+    position: absolute; bottom: 8px; right: 8px;
+    background: rgba(0,0,0,.55); color: #fff;
+    font-size: 11px; padding: 3px 8px; border-radius: 4px;
+    display: flex; align-items: center; gap: 4px;
+    pointer-events: none;
+    backdrop-filter: blur(2px);
+}
+
+/* Lightbox */
+.promo-lightbox {
+    display: none;
+    position: fixed; inset: 0; z-index: 2000;
+    background: rgba(0,0,0,.92);
+    align-items: center; justify-content: center;
+    padding: 16px;
+    cursor: zoom-out;
+}
+.promo-lightbox.open { display: flex; }
+.promo-lightbox img {
+    max-width: 100%; max-height: 92vh;
+    object-fit: contain;
+    border-radius: 6px;
+    box-shadow: 0 8px 48px rgba(0,0,0,.6);
+    cursor: default;
+}
+.promo-lightbox-close {
+    position: absolute; top: 14px; right: 18px;
+    background: rgba(255,255,255,.15); border: none;
+    color: #fff; font-size: 22px; cursor: pointer;
+    width: 36px; height: 36px; border-radius: 50%;
+    display: grid; place-items: center;
+    backdrop-filter: blur(4px);
+    transition: background .15s;
+}
+.promo-lightbox-close:hover { background: rgba(255,255,255,.28); }
+
+.promo-body { padding: 13px 14px 14px; }
+
+.promo-type-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 9px; border-radius: 5px;
+    font-size: 10px; font-weight: 700; letter-spacing: .4px;
+    margin-bottom: 8px;
+}
+.pb-notice   { background: #dbeafe; color: #1e40af; }
+.pb-event    { background: #fef3c7; color: #b45309; }
+.pb-donation { background: #fee2e2; color: #b91c1c; }
+.pb-festival { background: #d1fae5; color: #047857; }
+.pb-other    { background: #f3f4f6; color: #374151; }
+
+.promo-title {
+    font-family: var(--font-head);
+    font-size: 15px; font-weight: 700;
+    color: var(--c-text); margin-bottom: 8px; line-height: 1.35;
+}
+
+/* Body text: collapsed by default, expands on click */
+.promo-body-text {
+    font-size: 13px; color: var(--c-text-2);
+    line-height: 1.65; margin-bottom: 0;
+    white-space: pre-line;      /* renders 
+ as line breaks */
+}
+.promo-body-text.collapsed {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.promo-read-more {
+    background: none; border: none; cursor: pointer;
+    color: var(--c-green); font-size: 12px; font-weight: 600;
+    padding: 5px 0 8px; display: block;
+    text-align: left;
+}
+.promo-read-more:hover { color: var(--c-green-d); }
+
+.promo-actions {
+    display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;
+}
+.promo-cta {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 6px;
+    background: var(--c-green); color: var(--c-white);
+    font-size: 12px; font-weight: 600; text-decoration: none;
+    transition: opacity .15s; flex: 1; justify-content: center;
+    white-space: nowrap;
+}
+.promo-cta:hover { opacity: .85; color: var(--c-white); }
+.promo-cta-wa {
+    background: #22c55e;
+}
+.promo-cta i { font-size: 11px; }
+
+.promo-empty {
+    background: var(--c-surface);
+    border: 0.5px dashed var(--c-border);
+    border-radius: var(--radius-lg);
+    padding: 20px; text-align: center;
+    font-size: 13px; color: var(--c-text-3);
+}
+
+@media (max-width: 768px) {
+    .home-grid { grid-template-columns: 1fr; gap: 16px; padding: 20px 0 8px; }
+    .videos-row { grid-template-columns: 1fr; }
+    .welcome-h1 { font-size: 22px; }
+    .today-link { margin-left: 0; }
+    .mandir-banner { height: 120px; }
+    .mandir-banner-idol { width: 64px; height: 64px; font-size: 30px; }
+}
+</style>
 {% endblock %}
 
 {% block main %}
 
-<!-- Container (Contact Section) -->
-<div class="w3-content w3-container w3-padding-64" id="home">
-    <h3 class="w3-center">MANDIR DETAILS</h3>
-    <p class="w3-opacity w3-center"><i>Jai Jinendra</i></p>
-
-    <div class="w3-row w3-padding-32 w3-section">
-    {% for mandir in mandirs %}
-        <div class="w3-col m4 w3-container">
-            <!-- Add Google Maps -->
-            <div id="map_{{mandir.id}}" class="w3-round-large w3-greyscale" style="width:100%;height:300px;"></div>
+<div class="welcome-section">
+    <div class="container">
+        {% if mandirs.0.committee_name or mandirs.0.name %}
+        <div class="welcome-eyebrow">
+            <span class="dot"></span>
+            <span>{% if mandirs.0.committee_name %}{{ mandirs.0.committee_name }}{% else %}{{ mandirs.0.name }}{% endif %}</span>
         </div>
-        <div class="w3-col m8 w3-panel" style="margin-top: 0px !important;">
-            <div class="w3-large w3-margin-bottom">
-                {% if mandir.bank_name %}
-                    <span class="w3-opacity w3-text-green"><i>Bank Details:-</i></span><br>
-                    <i class="fa fa-bank fa-fw w3-hover-text-black w3-xlarge w3-margin-right"></i> {{mandir.bank_name}}<br>
-                    <i class="fa fa-user fa-fw w3-hover-text-black w3-xlarge w3-margin-right"></i> Ac Holder Name: {{mandir.account_name}}<br>
-                    <i class="fa fa-address-card fa-fw w3-hover-text-black w3-xlarge w3-margin-right"></i> Account Number: {{mandir.account_number}}<br>
-                    <i class="fa fa-barcode fa-fw w3-hover-text-black w3-xlarge w3-margin-right"></i> IFSC Code: {{mandir.ifsc_code}}<br>
-                    <i class="fa fa-map-marker fa-fw w3-hover-text-black w3-xlarge w3-margin-right"></i> Branch: {{mandir.branch}}<br>
-                {% endif %}
-                <span class="w3-opacity w3-text-green"><i>Contact Details:-</i></span><br>
-                <i class="fa fa-map-marker fa-fw w3-hover-text-black w3-xlarge w3-margin-right"></i> {{mandir.city}}, India<br>
-                <a onclick="Openwhatsapp('+91{{mandir.whatsapp_number}}')">
-                    <i class="fa fa-whatsapp fa-fw w3-hover-text-black w3-xlarge w3-margin-right"></i> Phone: +91 - {{mandir.whatsapp_number}}
+        {% endif %}
+        <h1 class="welcome-h1">Welcome, devotee.</h1>
+        <p class="welcome-sub">Look up your Boli records, settle dues, and stay close to the temple — all in one place.</p>
+        <div class="welcome-actions">
+            <a href="{% url 'record-list' %}" class="btn btn-primary">
+                <i class="fas fa-search"></i> Find my Boli records
+            </a>
+            {% if request.user.is_authenticated %}
+                <a href="{% url 'add-record' %}#entry" class="btn btn-accent">
+                    <i class="fas fa-plus" style="color: var(--c-blue);"></i> Add Boli record
                 </a>
-                <br>
-                <i class="fa fa-phone fa-fw w3-hover-text-black w3-xlarge w3-margin-right"></i> Phone: +91 - {{mandir.contract_number}}<br>
-                <i class="fa fa-envelope fa-fw w3-hover-text-black w3-xlarge w3-margin-right"></i> Email: {{mandir.email}}<br>
-            </div>
+            {% else %}
+                <a href="{% url 'raise-request' %}#entry" class="btn btn-accent">
+                    <i class="fas fa-plus" style="color: var(--c-blue);"></i> Add Boli request
+                </a>
+            {% endif %}
         </div>
-        <p>{% if mandir.committee_name %}{{mandir.committee_name}}{% else %}{{mandir.name}}{% endif %}</p>
-        <p>{{ mandir.description }}</p>
-        <div>
-            <center>
-                <p id="video-title">Lorem ipsum</p>
-                <iframe class="latestVideoEmbed" vnum='0' cid="UCpwk-tdv5C1Y-AniYZFJPlA"
-                        frameborder="0" allowfullscreen></iframe>
-            </center>
-        </div>
-        <div>
-            <center>
-                <p id="video-title">Lorem ipsum</p>
-                <iframe class="latestVideoEmbed" vnum='1' cid="UCpwk-tdv5C1Y-AniYZFJPlA"
-                        frameborder="0" allowfullscreen></iframe>
-            </center>
-        </div>
-        <center>
-            <div class="fb-page" data-href="https://www.facebook.com/susjainmandirji/"
-                 data-tabs="timeline" data-width="" data-height="" data-small-header="true"
-                 data-adapt-container-width="true" data-hide-cover="true" data-show-facepile="false">
-                    <blockquote cite="https://www.facebook.com/susjainmandirji/" class="fb-xfbml-parse-ignore">
-                        <a href="https://www.facebook.com/susjainmandirji/">सुस दिगम्बर जैन मंदिर जी</a>
-                    </blockquote>
-            </div>
-        </center>
-    {% endfor %}
     </div>
 </div>
+
+{% if today_events %}
+<div class="today-strip">
+    <div class="container">
+        <div class="today-strip-inner">
+            <div class="today-icon"><i class="fas fa-calendar-day"></i></div>
+            <div>
+                <span class="lbl">Today is</span>
+                <span class="val">{{ today_events.0.name }}</span>
+                <span class="sub"> · {{ today_events.0.type|title }}</span>
+            </div>
+            <a href="{% url 'jain-calendar' %}" class="today-link">View calendar →</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="container">
+{% for mandir in mandirs %}
+    <div class="home-grid">
+        <div>
+            <div class="section-label">The Mandir</div>
+
+            <div class="mandir-card">
+                <div class="mandir-banner">
+                    <div class="mandir-banner-idol">
+                        {% if mandir.logo %}
+                            <img src="{{ mandir.logo.url }}" alt="{{ mandir.name }}">
+                        {% else %}
+                            🧘
+                        {% endif %}
+                    </div>
+                    <div class="mandir-banner-content">
+                        <h2>{% if mandir.committee_name %}{{ mandir.committee_name }}{% else %}{{ mandir.name }}{% endif %}</h2>
+                        <div class="loc"><i class="fas fa-map-marker-alt"></i> {{ mandir.city }}, {{ mandir.state|title }}</div>
+                    </div>
+                </div>
+                <div class="mandir-card-body">
+                    {% if mandir.description %}
+                    <div class="mandir-desc">{{ mandir.description }}</div>
+                    {% endif %}
+
+                    <div class="tabs" role="tablist">
+                        <button class="tab active" data-tab="contact-{{ mandir.id }}">Contact</button>
+                        {% if mandir.bank_name %}<button class="tab" data-tab="bank-{{ mandir.id }}">Bank details</button>{% endif %}
+                        <button class="tab" data-tab="loc-{{ mandir.id }}">Location</button>
+                    </div>
+
+                    <div class="tab-panel active" id="contact-{{ mandir.id }}">
+                        <div class="info-row">
+                            <i class="fab fa-whatsapp" style="color: var(--c-green);"></i>
+                            <a href="javascript:Openwhatsapp('+91{{ mandir.whatsapp_number }}')">+91 {{ mandir.whatsapp_number }}</a>
+                        </div>
+                        <div class="info-row">
+                            <i class="fas fa-phone" style="color: var(--c-red);"></i>
+                            <span>+91 {{ mandir.contract_number }}</span>
+                        </div>
+                        <div class="info-row">
+                            <i class="fas fa-envelope" style="color: var(--c-yellow-d);"></i>
+                            <a href="mailto:{{ mandir.email }}">{{ mandir.email }}</a>
+                        </div>
+                    </div>
+
+                    {% if mandir.bank_name %}
+                    <div class="tab-panel" id="bank-{{ mandir.id }}">
+                        <div class="info-row"><i class="fas fa-university" style="color: var(--c-blue);"></i><span>{{ mandir.bank_name }}</span></div>
+                        <div class="info-row"><i class="fas fa-user" style="color: var(--c-blue);"></i><span>{{ mandir.account_name }}</span></div>
+                        <div class="info-row"><i class="fas fa-credit-card" style="color: var(--c-blue);"></i><span>A/C: {{ mandir.account_number }}</span></div>
+                        <div class="info-row"><i class="fas fa-barcode" style="color: var(--c-blue);"></i><span>IFSC: {{ mandir.ifsc_code }}</span></div>
+                        <div class="info-row"><i class="fas fa-map-marker-alt" style="color: var(--c-blue);"></i><span>{{ mandir.branch }}</span></div>
+                    </div>
+                    {% endif %}
+
+                    <div class="tab-panel" id="loc-{{ mandir.id }}">
+                        <div id="map_{{ mandir.id }}" class="map-embed"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="media-section">
+                <h3>Latest from the Mandir</h3>
+                <div class="videos-row">
+                    <div class="video-block">
+                        <div class="video-label" id="vt0">Loading latest video…</div>
+                        <iframe class="latestVideoEmbed" vnum="0" cid="UCpwk-tdv5C1Y-AniYZFJPlA" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                    <div class="video-block">
+                        <div class="video-label" id="vt1">Loading latest video…</div>
+                        <iframe class="latestVideoEmbed" vnum="1" cid="UCpwk-tdv5C1Y-AniYZFJPlA" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                </div>
+                <div class="fb-center">
+                    <div class="fb-page"
+                         data-href="https://www.facebook.com/susjainmandirji/"
+                         data-tabs="timeline" data-width="" data-height=""
+                         data-small-header="true" data-adapt-container-width="true"
+                         data-hide-cover="true" data-show-facepile="false">
+                        <blockquote cite="https://www.facebook.com/susjainmandirji/" class="fb-xfbml-parse-ignore">
+                            <a href="https://www.facebook.com/susjainmandirji/">{{ mandir.name }}</a>
+                        </blockquote>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+
+            <!-- ── PROMOTIONS ── -->
+            <div class="section-label">Notice Board</div>
+            <div class="promo-wrap">
+                {% if promotions %}
+                    {% for promo in promotions %}
+                    <div class="promo-card">
+                        {% if promo.image %}
+                        <!-- Thumbnail — click opens lightbox -->
+                        <div class="promo-card-img-wrap"
+                             onclick="openLightbox('lb-{{ forloop.counter }}')"
+                             title="Click to view full image">
+                            <img src="{{ promo.image.url }}" alt="{{ promo.title }}">
+                            <span class="promo-img-hint">
+                                <i class="fas fa-expand-alt" style="font-size:9px;"></i> View full
+                            </span>
+                        </div>
+
+                        <!-- Lightbox (hidden by default) -->
+                        <div class="promo-lightbox" id="lb-{{ forloop.counter }}"
+                             onclick="closeLightbox('lb-{{ forloop.counter }}')">
+                            <button class="promo-lightbox-close"
+                                    onclick="closeLightbox('lb-{{ forloop.counter }}');event.stopPropagation();">
+                                ×
+                            </button>
+                            <img src="{{ promo.image.url }}"
+                                 alt="{{ promo.title }}"
+                                 onclick="event.stopPropagation();">
+                        </div>
+                        {% endif %}
+
+                        <div class="promo-body">
+                            <span class="promo-type-badge pb-{{ promo.promo_type }}">
+                                {% if promo.promo_type == 'notice' %}📢 Notice
+                                {% elif promo.promo_type == 'event' %}📅 Event
+                                {% elif promo.promo_type == 'donation' %}🙏 Donation
+                                {% elif promo.promo_type == 'festival' %}🎉 Festival
+                                {% else %}ℹ️ Info{% endif %}
+                            </span>
+                            <div class="promo-title">{{ promo.title }}</div>
+                            <div class="promo-body-text collapsed" id="promo-text-{{ forloop.counter }}">{{ promo.body }}</div>
+                            <button class="promo-read-more" onclick="togglePromo({{ forloop.counter }}, this)">
+                                Read more ▾
+                            </button>
+                            <div class="promo-actions">
+                                <button class="promo-cta promo-cta-wa"
+                                        onclick="sharePromo(this)"
+                                        data-title="{{ promo.title|escapejs }}"
+                                        data-body="{{ promo.body|escapejs }}"
+                                        {% if promo.image %}data-image="{{ promo.image.url }}"{% endif %}>
+                                    <i class="fas fa-share-alt"></i>
+                                    {% if promo.cta_label %}{{ promo.cta_label }}{% else %}Share Now{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="promo-empty">
+                    No notices at the moment.
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- ── UPCOMING JAIN EVENTS ── -->
+            <div class="section-label" style="margin-top: 4px;">Upcoming</div>
+            {% if upcoming_events %}
+            <div class="upcoming-card">
+                {% for ev in upcoming_events|slice:":5" %}
+                <div class="upcoming-item t-{{ ev.type }}">
+                    <div class="upcoming-date">{{ ev.weekday|slice:":3"|upper }} · {{ ev.date }}</div>
+                    <div class="upcoming-name">{{ ev.name }}</div>
+                    <div class="upcoming-tag t-{{ ev.type }}">{{ ev.type|title }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="upcoming-card">
+                <div style="font-size: 13px; color: var(--c-text-3); text-align: center; padding: 16px 0;">
+                    No upcoming events this month
+                </div>
+            </div>
+            {% endif %}
+
+            <a href="{% url 'jain-reminders' %}" class="cta-reminder" style="margin-top: 10px;">
+                <i class="fas fa-bell"></i>
+                <span>Get reminders on WhatsApp</span>
+                <i class="fas fa-arrow-right" style="margin-left: auto; font-size: 12px; color: rgba(255,255,255,0.75);"></i>
+            </a>
+        </div>
+    </div>
+{% endfor %}
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-        <script>
-            var reqURL = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent("https://www.youtube.com/feeds/videos.xml?channel_id=");
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script>
+/* ── Promo share ── */
+function sharePromo(btn) {
+    var title    = btn.getAttribute('data-title') || '';
+    var body     = btn.getAttribute('data-body')  || '';
+    var img      = btn.getAttribute('data-image') || '';
+    var fullText = title + '\n\n' + body;
 
-            function loadVideo(iframe) {
-              $.getJSON(reqURL + iframe.getAttribute('cid'),
-                function(data) {
-                  var videoNumber = (iframe.getAttribute('vnum') ? Number(iframe.getAttribute('vnum')) : 0);
-                  console.log(videoNumber);
-                  var link = data.items[videoNumber].link;
-                  var title=data.items[videoNumber].title;
-                  id = link.substr(link.indexOf("=") + 1);
-                  iframe.setAttribute("src", "https://youtube.com/embed/" + id + "?controls=0&autoplay=1");
-                  iframe.parentElement.querySelector("#video-title").innerText = title;
-                }
-              );
-            }
+    if (navigator.share) {
+        var shareData = { title: title, text: fullText };
+        if (img) {
+            fetch(img)
+                .then(function(r) { return r.blob(); })
+                .then(function(blob) {
+                    var ext  = img.split('.').pop().split('?')[0].toLowerCase();
+                    var mime = ext === 'png' ? 'image/png' : 'image/jpeg';
+                    var file = new File([blob], 'notice.' + ext, { type: mime });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        return navigator.share({ title: title, text: fullText, files: [file] });
+                    }
+                    return navigator.share(shareData);
+                })
+                .catch(function() { return navigator.share(shareData); });
+        } else {
+            navigator.share(shareData).catch(function() {});
+        }
+        return;
+    }
+    window.open('https://wa.me/?text=' + encodeURIComponent(fullText), '_blank');
+}
 
-            var iframes = document.getElementsByClassName('latestVideoEmbed');
-            for (var i = 0, len = iframes.length; i < len; i++) {
-              loadVideo(iframes[i]);
-            }
-        </script>
+/* ── Promo read-more toggle ── */
+function togglePromo(idx, btn) {
+    var el = document.getElementById('promo-text-' + idx);
+    if (!el) return;
+    var collapsed = el.classList.contains('collapsed');
+    el.classList.toggle('collapsed', !collapsed);
+    btn.textContent = collapsed ? 'Show less ▴' : 'Read more ▾';
+}
+
+/* ── Promo image lightbox ── */
+function openLightbox(id) {
+    var lb = document.getElementById(id);
+    if (lb) {
+        lb.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+}
+function closeLightbox(id) {
+    var lb = document.getElementById(id);
+    if (lb) {
+        lb.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+}
+/* Close lightbox on Escape key */
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.promo-lightbox.open').forEach(function(lb) {
+            lb.classList.remove('open');
+            document.body.style.overflow = '';
+        });
+    }
+});
+
+document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){
+        var card = t.closest('.mandir-card-body');
+        card.querySelectorAll('.tab').forEach(function(x){ x.classList.remove('active'); });
+        card.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+        t.classList.add('active');
+        var panel = document.getElementById(t.dataset.tab);
+        if (panel) panel.classList.add('active');
+    });
+});
+
+var reqURL = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent("https://www.youtube.com/feeds/videos.xml?channel_id=");
+function loadVideo(iframe) {
+    var vnum = parseInt(iframe.getAttribute('vnum') || '0');
+    var cid = iframe.getAttribute('cid');
+    var titleEl = document.getElementById('vt' + vnum);
+    $.getJSON(reqURL + cid, function(data) {
+        var item = data.items[vnum];
+        if (!item) return;
+        var id = item.link.substr(item.link.indexOf('=') + 1);
+        iframe.setAttribute('src', 'https://youtube.com/embed/' + id + '?controls=0');
+        if (titleEl) titleEl.textContent = item.title;
+    });
+}
+document.querySelectorAll('.latestVideoEmbed').forEach(function(f){ loadVideo(f); });
+</script>
 {% endblock %}

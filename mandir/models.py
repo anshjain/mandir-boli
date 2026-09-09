@@ -34,6 +34,8 @@ class Mandir(models.Model):
     email = models.EmailField(max_length=70, blank=True, null=True, unique=True)
     description = models.CharField(max_length=255, verbose_name=_("Mandir Description"), blank=True, null=True, unique=True)
     committee_name = models.CharField(max_length=255, blank=True, null=True, unique=True, verbose_name=_("Committee name"))
+    logo = models.ImageField(verbose_name=_("Temple logo / Tirthankar idol"), upload_to='logos/', blank=True, null=True,
+                             help_text=_("Square image of the Tirthankar idol; shown as the temple logo in the navigation."))
     city = models.CharField(max_length=20, verbose_name=_("city"), default='Pune')
     state = models.CharField(max_length=20, verbose_name=_("state"), default='maharashtra')
     pin_code = models.CharField(max_length=6, verbose_name=_("pin code"), default='411021')
@@ -152,3 +154,72 @@ class VratDetail(models.Model):
 
     def __str__(self):
         return "{} {}".format(self.name, self.vrat_date.strftime("%m/%d/%Y"))
+
+
+class Promotion(models.Model):
+    """
+    Promotional banner / notice manageable from the admin panel.
+    Displayed in the sidebar of the home page.
+    """
+    PROMO_TYPES = [
+        ('notice',    'Notice / Announcement'),
+        ('event',     'Event'),
+        ('donation',  'Donation Appeal'),
+        ('festival',  'Festival'),
+        ('other',     'Other'),
+    ]
+
+    mandir   = models.ForeignKey(
+        Mandir, verbose_name=_('mandir'),
+        related_name='promotions', on_delete=models.CASCADE
+    )
+    promo_type = models.CharField(
+        max_length=20, choices=PROMO_TYPES,
+        default='notice', verbose_name=_('Type')
+    )
+    title    = models.CharField(max_length=200, verbose_name=_('Title'))
+    body     = models.TextField(
+        verbose_name=_('Body'),
+        help_text=_('Main text shown on the card. Keep it concise (2–4 lines).')
+    )
+    image    = models.ImageField(
+        upload_to='promotions/', blank=True, null=True,
+        verbose_name=_('Banner image'),
+        help_text=_('Optional image (landscape works best, e.g. 600×300 px).')
+    )
+    cta_label = models.CharField(
+        max_length=60, blank=True, null=True,
+        verbose_name=_('Button label'),
+        help_text=_('e.g. "Register Now", "Donate", "Learn More"')
+    )
+    cta_url   = models.URLField(
+        blank=True, null=True,
+        verbose_name=_('Button URL'),
+        help_text=_('Where the button points. Leave blank to hide the button.')
+    )
+    start_date = models.DateField(
+        verbose_name=_('Show from'),
+        help_text=_('Promotion appears on this date.')
+    )
+    end_date   = models.DateField(
+        verbose_name=_('Show until'),
+        help_text=_('Promotion is hidden after this date.')
+    )
+    priority   = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name=_('Priority'),
+        help_text=_('Higher number = shown first. Use to pin important notices.')
+    )
+    is_active  = models.BooleanField(
+        default=True, verbose_name=_('Active'),
+        help_text=_('Uncheck to hide without deleting.')
+    )
+    created    = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name        = _('Promotion')
+        verbose_name_plural = _('Promotions')
+        ordering            = ['-priority', '-start_date']
+
+    def __str__(self):
+        return '{} — {}'.format(self.title, self.mandir.name)

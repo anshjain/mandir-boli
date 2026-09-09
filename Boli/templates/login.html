@@ -1,40 +1,204 @@
 {% extends "base.html" %}
-
 {% load static i18n %}
-
 {% block title %}{% trans "Login" %}{% endblock %}
 
+{% block extra_css %}
+<style>
+.login-page { padding: 32px 0 60px; }
+.login-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 24px;
+    align-items: start;
+    max-width: 760px;
+    margin: 0 auto;
+}
+.login-brand { text-align: center; margin-bottom: 24px; }
+.login-brand .jain-sym { font-size: 44px; display: block; margin-bottom: 8px; line-height: 1; }
+.login-brand h2 { font-family: var(--font-head); font-size: 26px; font-weight: 700; color: var(--c-text); }
+.login-brand p { font-size: 13px; color: var(--c-text-3); margin-top: 4px; }
+.login-contact-info { margin-top: 16px; padding: 14px; background: var(--c-surface); border: 0.5px solid var(--c-border); border-radius: var(--radius); font-size: 13px; color: var(--c-text-2); }
+.login-contact-info div { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.login-contact-info div:last-child { margin-bottom: 0; }
+.login-brand .logo-circle {
+    display: inline-block;
+    width: 64px; height: 64px; border-radius: 50%;
+    overflow: hidden; border: 2px solid var(--c-yellow);
+    background: linear-gradient(135deg, #C9986A 0%, #8B6F47 100%);
+    margin-bottom: 12px;
+}
+.login-brand .logo-circle img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.login-brand .om {
+    display: block; line-height: 60px; font-size: 32px;
+    color: var(--c-yellow);
+}
+
+/* Promo styles */
+.promo-col-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--c-text-3); margin-bottom: 8px; }
+.promo-col { display: flex; flex-direction: column; gap: 12px; }
+.promo-card { background: var(--c-surface); border: 0.5px solid var(--c-border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
+.promo-card-img-wrap { width: 100%; background: #0a0a0a; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; position: relative; }
+.promo-card-img-wrap img { width: 100%; max-height: 280px; object-fit: contain; display: block; transition: transform .2s; }
+.promo-card-img-wrap:hover img { transform: scale(1.02); }
+.promo-img-hint { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,.55); color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px; pointer-events: none; }
+.promo-lightbox { display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,.92); align-items: center; justify-content: center; padding: 16px; cursor: zoom-out; }
+.promo-lightbox.open { display: flex; }
+.promo-lightbox img { max-width: 100%; max-height: 92vh; object-fit: contain; border-radius: 6px; cursor: default; }
+.promo-lightbox-close { position: absolute; top: 14px; right: 18px; background: rgba(255,255,255,.15); border: none; color: #fff; font-size: 22px; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; }
+.promo-lightbox-close:hover { background: rgba(255,255,255,.28); }
+.promo-body { padding: 12px 14px 13px; }
+.promo-type-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 5px; font-size: 10px; font-weight: 700; letter-spacing: .4px; margin-bottom: 7px; }
+.pb-notice { background: #dbeafe; color: #1e40af; }
+.pb-event { background: #fef3c7; color: #b45309; }
+.pb-donation { background: #fee2e2; color: #b91c1c; }
+.pb-festival { background: #d1fae5; color: #047857; }
+.pb-other { background: #f3f4f6; color: #374151; }
+.promo-title { font-family: var(--font-head); font-size: 14px; font-weight: 700; color: var(--c-text); margin-bottom: 6px; line-height: 1.3; }
+.promo-body-text { font-size: 12px; color: var(--c-text-2); line-height: 1.6; white-space: pre-line; }
+.promo-body-text.collapsed { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.promo-read-more { background: none; border: none; cursor: pointer; color: var(--c-green); font-size: 11px; font-weight: 600; padding: 4px 0 6px; display: block; }
+.promo-actions { display: flex; gap: 8px; margin-top: 8px; }
+.promo-cta { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 6px; background: var(--c-green); color: var(--c-white); font-size: 12px; font-weight: 600; text-decoration: none; flex: 1; justify-content: center; border: none; cursor: pointer; font-family: inherit; }
+.promo-cta:hover { opacity: .85; color: var(--c-white); }
+.promo-cta-wa { background: #22c55e; }
+.promo-empty { background: var(--c-surface); border: 0.5px dashed var(--c-border); border-radius: var(--radius-lg); padding: 18px; text-align: center; font-size: 13px; color: var(--c-text-3); }
+
+@media (max-width: 640px) {
+    .login-layout { grid-template-columns: 1fr; }
+    .promo-col { order: -1; }
+}
+</style>
+{% endblock %}
+
 {% block main %}
-    <div class="w3-container w3-content w3-padding-64" style="max-width:800px" id="login">
-        <h2 class="w3-wide w3-center">LOGIN</h2>
-        <p class="w3-opacity w3-center"><i> Jai Jinendra </i></p>
-        {% if form.errors %}
-            <p class="w3-opacity w3-center" style="color:red;"><i>
-                Please enter a correct username and password. Note that both fields may be case-sensitive
-            </i></p>
-        {% endif %}
-        <div class="w3-row w3-padding-32">
-            <div class="w3-col m6 w3-large w3-margin-bottom">
-                <i class="fa fa-map-marker" style="width:30px"></i> Pune, India<br>
-                <i class="fa fa-phone" style="width:30px"></i> Phone: +91 9552105933 <br>
-                <i class="fa fa-envelope" style="width:30px"> </i> Email: jain.scs@gmail.com<br>
+<div class="container login-page" id="login">
+    <div class="login-layout">
+
+        <!-- Left: Login form -->
+        <div>
+			<div class="login-brand">
+				<div class="logo-circle">
+					{% if mandirs.0.logo %}
+						<img src="{{ mandirs.0.logo.url }}" alt="{{ mandirs.0.name }}">
+					{% else %}
+						<span class="om">ꣽ</span>
+					{% endif %}
+				</div>
+				<h2>Welcome back</h2>
+				<p>Sign in to manage temple records</p>
+			</div>
+            {% if form.errors %}
+            <div class="msg msg-error" style="margin-bottom:16px;">
+                <i class="fas fa-exclamation-circle"></i> Incorrect username or password. Both are case-sensitive.
             </div>
-            <div class="w3-col m6">
-                <form method="post" action="{% url 'login' %}#login">
-                    {% csrf_token %}
-                    <div class="w3-row-padding" style="margin:0 -16px 8px -16px">
-                        <div class="w3-half">
-                            <input placeholder="Username" name="username" required id="id_username" class="w3-input w3-border">
+            {% endif %}
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" action="{% url 'login' %}#login">
+                        {% csrf_token %}
+                        <div class="form-field">
+                            <label>Username</label>
+                            <input type="text" name="username" id="id_username" required
+                                   placeholder="Enter username" autocomplete="username">
                             {{ form.username.errors }}
                         </div>
-                        <div class="w3-half">
-                            <input placeholder="password" type="password" name="password" required id="id_password" class="w3-input w3-border">
+                        <div class="form-field">
+                            <label>Password</label>
+                            <input type="password" name="password" id="id_password" required
+                                   placeholder="Enter password" autocomplete="current-password">
                             {{ form.password.errors }}
                         </div>
-                    </div>
-                    <button class="w3-button w3-black w3-section w3-right" type="submit">LOGIN</button>
-                </form>
+                        <button class="btn btn-primary btn-block" type="submit">Login</button>
+                    </form>
+                </div>
+            </div>
+            <div class="login-contact-info">
+                <div><i class="fas fa-phone" style="color:var(--c-accent);width:14px;"></i> +91 9552105933</div>
+                <div><i class="fas fa-envelope" style="color:var(--c-accent);width:14px;"></i> jain.scs@gmail.com</div>
             </div>
         </div>
+
+        <!-- Right: Promotions -->
+        <div class="promo-col">
+            <div class="promo-col-label">Notice Board</div>
+            {% if promotions %}
+                {% for promo in promotions %}
+                <div class="promo-card">
+                    {% if promo.image %}
+                    <div class="promo-card-img-wrap"
+                         onclick="openLightbox('lg-lb-{{ forloop.counter }}')"
+                         title="Click to view full image">
+                        <img src="{{ promo.image.url }}" alt="{{ promo.title }}">
+                        <span class="promo-img-hint">
+                            <i class="fas fa-expand-alt" style="font-size:9px;"></i> View full
+                        </span>
+                    </div>
+                    <div class="promo-lightbox" id="lg-lb-{{ forloop.counter }}"
+                         onclick="closeLightbox('lg-lb-{{ forloop.counter }}')">
+                        <button class="promo-lightbox-close"
+                                onclick="closeLightbox('lg-lb-{{ forloop.counter }}');event.stopPropagation();">×</button>
+                        <img src="{{ promo.image.url }}" alt="{{ promo.title }}"
+                             onclick="event.stopPropagation();">
+                    </div>
+                    {% endif %}
+                    <div class="promo-body">
+                        <span class="promo-type-badge pb-{{ promo.promo_type }}">
+                            {% if promo.promo_type == 'notice' %}📢 Notice
+                            {% elif promo.promo_type == 'event' %}📅 Event
+                            {% elif promo.promo_type == 'donation' %}🙏 Donation
+                            {% elif promo.promo_type == 'festival' %}🎉 Festival
+                            {% else %}ℹ️ Info{% endif %}
+                        </span>
+                        <div class="promo-title">{{ promo.title }}</div>
+                        <div class="promo-body-text collapsed" id="lg-promo-{{ forloop.counter }}">{{ promo.body }}</div>
+                        <button class="promo-read-more"
+                                onclick="togglePromo('lg-promo-{{ forloop.counter }}', this)">Read more ▾</button>
+                        <div class="promo-actions">
+                            <button class="promo-cta promo-cta-wa"
+                                    onclick="sharePromo(this)"
+                                    data-title="{{ promo.title|escapejs }}"
+                                    data-body="{{ promo.body|escapejs }}"
+                                    {% if promo.image %}data-image="{{ promo.image.url }}"{% endif %}>
+                                <i class="fas fa-share-alt"></i>
+                                {% if promo.cta_label %}{{ promo.cta_label }}{% else %}Share Now{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="promo-empty">No notices at the moment.</div>
+            {% endif %}
+        </div>
+
     </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+function togglePromo(id, btn) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var collapsed = el.classList.contains('collapsed');
+    el.classList.toggle('collapsed', !collapsed);
+    btn.textContent = collapsed ? 'Show less ▴' : 'Read more ▾';
+}
+function openLightbox(id) {
+    var lb = document.getElementById(id);
+    if (lb) { lb.classList.add('open'); document.body.style.overflow = 'hidden'; }
+}
+function closeLightbox(id) {
+    var lb = document.getElementById(id);
+    if (lb) { lb.classList.remove('open'); document.body.style.overflow = ''; }
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.promo-lightbox.open').forEach(function(lb) {
+            lb.classList.remove('open'); document.body.style.overflow = '';
+        });
+    }
+});
+</script>
 {% endblock %}

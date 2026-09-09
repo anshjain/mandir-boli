@@ -1,198 +1,147 @@
-// Automatic Slideshow - change image every 4 seconds
-var myIndex = 0;
-var running_total = 0;
-var paid_ids = [];
+/* ================================================================
+   PunyaUday Fund — punyauday.js
+   ================================================================ */
+
+/* ── CAROUSEL ────────────────────────────────────────────────── */
+var _si = 0, _st = null;
+
+/* Hide ALL slides the moment this script is parsed — before first paint */
+(function () {
+    var s = document.getElementsByClassName('hero-slide');
+    for (var i = 0; i < s.length; i++) {
+        s[i].style.display = 'none';
+        s[i].style.opacity = '0';
+    }
+})();
 
 function carousel() {
-    var i;
-    var x = document.getElementsByClassName("mySlides");
-    for (i = 0; i < x.length; i++) {
-       x[i].style.display = "none";
+    var slides = document.getElementsByClassName('hero-slide');
+    if (!slides.length) return;
+
+    /* hide all */
+    for (var i = 0; i < slides.length; i++) {
+        slides[i].style.display = 'none';
+        slides[i].style.opacity = '0';
     }
-    myIndex++;
-    if (myIndex > x.length) {myIndex = 1}
-    x[myIndex-1].style.display = "block";
-    setTimeout(carousel, 4000);
+
+    /* advance index */
+    _si = (_si % slides.length) + 1;
+    var cur = slides[_si - 1];
+
+    /* show + fade in */
+    cur.style.display = 'block';
+    cur.style.opacity = '0';
+    cur.style.transition = 'opacity 0.5s ease';
+    /* force reflow so transition fires */
+    void cur.offsetWidth;
+    cur.style.opacity = '1';
+
+    if (_st) clearTimeout(_st);
+    _st = setTimeout(carousel, 4500);
 }
 
-// Used to toggle the menu on small screens when clicking on the menu button
-function myFunction() {
-    var x = document.getElementById("navDemo");
-    if (x.className.indexOf("w3-show") == -1) {
-        x.className += " w3-show";
-    } else {
-        x.className = x.className.replace(" w3-show", "");
-    }
-}
-
-// When the user clicks anywhere outside of the modal, close it
-var modal = document.getElementById('EmailModal');
-var confirm_modal = document.getElementById('customConfirmation');
-window.onclick = function(event) {
-  if (event.target == modal) {
-    close_update();
-  }
-  if (event.target == confirm_modal){
-    closeConfirmationModel();
-  }
-}
-
-function display_model(record_id, amount, date, partial, pan_card){
-    document.getElementById("record_id").value = record_id;
-    document.getElementById('EmailModal').style.display='block';
-
-    if (partial=="PP"){
-        document.getElementById("Original_amount").style.display='block';
-        document.getElementById("id_partial_payment").style.display='block';
-        document.getElementById("id_partial_payment").required = true;
-        document.getElementById("amount_val").innerHTML = "0.00";
-    } else {
-        document.getElementById("id_partial_payment").style.display='none';
-        document.getElementById("Original_amount").style.display='none';
-        document.getElementById("id_partial_payment").required = false;
-        document.getElementById("amount_val").innerHTML = amount + '.00';
-    }
-    document.getElementById("org_amount_val").innerHTML = amount + '.00';
-    document.getElementById("boli_date").innerHTML = date;
-    document.getElementById("phone_number").value = document.getElementById("pNumber").value;
-
-    if (pan_card !== "None"){
-        document.getElementById("id_pan_card").value = '********';
-        document.getElementById("id_pan_card").readOnly = true;
-    }
-}
-
-function close_update(){
-    document.getElementById('EmailModal').style.display='none';
-    var checkboxes = document.getElementsByTagName('input');
-    paid_ids = [];
-    running_total = 0;
-    for (var i = 0; i < checkboxes.length; i++) {
-        if (checkboxes[i].type == 'checkbox') {
-            checkboxes[i].checked = false;
-        }
-    document.getElementById('chk_total').textContent = running_total;
-    document.getElementById("chb_amt").disabled = true;
-    }
-};
-
-function payment_cal(){
-    var paid_amount = parseInt(document.getElementById("id_partial_payment").value);
-    var original_amount = parseInt(document.getElementById("org_amount_val").innerText);
-    if (original_amount < paid_amount){
-        document.getElementById("amount_val").innerHTML = "Amount greater than Original amount not allowed!";
-        document.getElementById("amount_val").style.color = "red";
-        document.getElementById("id_partial_payment").value = ''
-    } else {
-        document.getElementById("amount_val").style.color = "black";
-        document.getElementById("amount_val").innerHTML = paid_amount + '.00';
-    }
-}
-
-function payment_md(){
-    var mode = document.getElementById("id_payment_mode").value;
-    if (mode === 'Cash'){
-        document.getElementById('id_id_details').style.display='none';
-        document.getElementById("id_id_details").required = false;
-    } else {
-        document.getElementById('id_id_details').style.display='block';
-        document.getElementById("id_id_details").required = true;
-    }
-}
-
-
-var pNumber = document.getElementById("pNumber");
-pNumber.addEventListener("keyup", function(event) {
-  event.preventDefault();
-  if (event.keyCode === 13) {
-    var url = '/search/?phone_number='+pNumber.value+'#record'
-    window.open(url, "_self");
-  }
+/* ── MODALS ──────────────────────────────────────────────────── */
+window.addEventListener('click', function (e) {
+    var em = document.getElementById('EmailModal');
+    var cm = document.getElementById('customConfirmation');
+    var wa = document.getElementById('waModal');
+    if (em && e.target === em) close_update();
+    if (cm && e.target === cm) closeConfirmationModel();
+    if (wa && e.target === wa) wa.classList.remove('open');
 });
 
+var running_total = 0, paid_ids = [];
 
-var getUrlParameter = function getUrlParameter(sParam) {
-    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
-        sURLVariables = sPageURL.split('&'),
-        sParameterName,
-        i;
-
-    for (i = 0; i < sURLVariables.length; i++) {
-        sParameterName = sURLVariables[i].split('=');
-
-        if (sParameterName[0] === sParam) {
-            return sParameterName[1] === undefined ? true : sParameterName[1];
-        }
+function display_model(record_id, amount, date, partial, pan_card) {
+    var modal = document.getElementById('EmailModal');
+    if (!modal) return;
+    document.getElementById('record_id').value = record_id;
+    modal.classList.add('open');
+    var partInput = document.getElementById('id_partial_payment');
+    var amtSpan   = document.getElementById('amount_val');
+    var orgSpan   = document.getElementById('org_amount_val');
+    var dateSpan  = document.getElementById('boli_date');
+    var phoneHid  = document.getElementById('phone_number');
+    var pNum      = document.getElementById('pNumber');
+    if (partial === 'PP') {
+        if (partInput) { partInput.style.display = 'block'; partInput.required = true; }
+        if (amtSpan) amtSpan.innerHTML = '0.00';
+    } else {
+        if (partInput) { partInput.style.display = 'none'; partInput.required = false; }
+        if (amtSpan) amtSpan.innerHTML = amount + '.00';
     }
-};
+    if (orgSpan)  orgSpan.innerHTML  = amount + '.00';
+    if (dateSpan) dateSpan.innerHTML = date;
+    if (phoneHid && pNum) phoneHid.value = pNum.value;
+    var panField = document.getElementById('id_pan_card');
+    if (panField && pan_card !== 'None') { panField.value = '********'; panField.readOnly = true; }
+}
 
+function close_update() {
+    var modal = document.getElementById('EmailModal');
+    if (modal) modal.classList.remove('open');
+    paid_ids = []; running_total = 0;
+    document.querySelectorAll('input[type=checkbox]').forEach(function (c) { c.checked = false; });
+    var t = document.getElementById('chk_total'); if (t) t.textContent = '₹0';
+    var b = document.getElementById('chb_amt');   if (b) b.disabled = true;
+}
 
-/* Function will fetch description based phone number */
+function update(checkbox) {
+    var b = document.getElementById('chb_amt');
+    if (b) b.disabled = false;
+    if (checkbox.checked) {
+        running_total += parseInt(checkbox.value); paid_ids.push(checkbox.id);
+    } else {
+        running_total -= parseInt(checkbox.value);
+        paid_ids = paid_ids.filter(function (id) { return id !== checkbox.id; });
+        if (running_total === 0 && b) b.disabled = true;
+    }
+    var t = document.getElementById('chk_total'); if (t) t.textContent = '₹' + running_total;
+    var s = document.getElementById('smtArrId');  if (s) s.value = paid_ids;
+}
+
+function openGooglePay(amount) {
+    var amt = String(amount).replace('₹', '').trim();
+    if (amt && amt !== '0') {
+        window.open('upi://pay?pa=8799928255@mahb&pn=susdigamberjainmadir&am=' + amt + '&cu=INR', '_blank');
+    } else { alert('Please select at least one record.'); }
+}
+
+function confirmationUserAction(amount) {
+    var v = document.getElementById('confirm_val'); if (v) v.innerHTML = amount + '.00';
+    var m = document.getElementById('customConfirmation'); if (m) m.classList.add('open');
+}
+
+function openModelBox(record_id, amount, date, partial, pan_card) {
+    var m = document.getElementById('customConfirmation'); if (m) m.classList.remove('open');
+    display_model(record_id, amount, date, partial, pan_card);
+}
+
+function closeConfirmationModel() {
+    var m = document.getElementById('customConfirmation'); if (m) m.classList.remove('open');
+    var c = document.getElementById('paid_chk'); if (c) c.checked = false;
+}
+
+function Openwhatsapp(phone) {
+    window.open('https://api.whatsapp.com/send?phone=' + phone, '',
+        'toolbar=no,status=no,menubar=no,scrollbars=no,resizable=no,height=500,width=657');
+}
+
 function get_description() {
-    var phone_number = $("#id_phone_number").val();
-    var data = {
-        phone_number: phone_number
-    };
-
-    if (phone_number.length >= 10){
-        $('#id_description').focus();
-        $.get('/get/description/', data, function(data){
-               $('#id_description').val(data.description);
+    var phone = document.getElementById('id_phone_number');
+    if (phone && phone.value.length >= 10 && typeof $ !== 'undefined') {
+        $.get('/get/description/', { phone_number: phone.value }, function (data) {
+            var d = document.getElementById('id_description');
+            if (d && data.description) d.value = data.description;
         }, 'json');
     }
 }
 
-function Openwhatsapp(phone_number) {
-   var url = "https://api.whatsapp.com/send?phone=" + phone_number
-    window.open(url,"","toolbar=no,status=no,menubar=no,location=center,scrollbars=no,resizable=no,height=500,width=657");
-}
-
-function update(mandir) {
-    document.getElementById("chb_amt").disabled = false;
-    // Check
-    if(mandir.checked == true){
-        // Add value to running_total
-        running_total += parseInt(mandir.value);
-        document.getElementById('chk_total').textContent = running_total;
-        paid_ids.push(mandir.id);
-        document.getElementById('smtArrId').value = paid_ids;
-    }
-    // Uncheck
-    if(mandir.checked == false){
-        // Subtract value from running_total
-        running_total -= parseInt(mandir.value);
-        document.getElementById('chk_total').textContent = running_total;
-        let index = paid_ids.indexOf(mandir.id);  // find the index of mandir.id
-        if (index !== -1) {
-            paid_ids.splice(index, 1);      // remove it
+var pNum = document.getElementById('pNumber');
+if (pNum) {
+    pNum.addEventListener('keyup', function (e) {
+        if (e.keyCode === 13) {
+            window.open('/search/?phone_number=' + pNum.value + '#record', '_self');
         }
-        document.getElementById('smtArrId').value = paid_ids;
-        if (running_total == 0){
-            document.getElementById("chb_amt").disabled = true;
-        }
-    }
+    });
 }
-
-function openGooglePay(amount) {
-    if (amount != "0"){
-        const googlePayDeepLink = "upi://pay?pa=8799928255@mahb&pn=susdigamberjainmadir&am="+amount+"&cu=INR";
-        window.open(googlePayDeepLink, '_blank');
-    } else {
-        alert("Please select at least one record.")
-    }
-}
-
-function confirmationUserAction(amount){
-    document.getElementById("confirm_val").innerHTML = amount + '.00';
-    document.getElementById('customConfirmation').style.display='block';
-}
-
-function openModelBox(record_id, amount, date, partial, pan_card) {
-        document.getElementById('customConfirmation').style.display='None';
-        display_model(record_id, amount, date, partial, pan_card)
-}
-
-function closeConfirmationModel(){
-    document.getElementById('customConfirmation').style.display='none';
-    document.getElementById("paid_chk").checked = false;
-};

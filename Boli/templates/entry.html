@@ -1,76 +1,106 @@
 {% extends "base.html" %}
-
 {% load static i18n %}
-
 {% block title %}{% trans "Add Record" %}{% endblock %}
 
 {% block extra_css %}
-    <link href = "https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel = "stylesheet">
+<link href="https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel="stylesheet">
+<style>
+.entry-page { padding: 32px 0 60px; max-width: 580px; margin: 0 auto; }
+.entry-hero { text-align: center; margin-bottom: 22px; }
+.entry-icon {
+    display: inline-grid; place-items: center;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--c-yellow-l); border: 0.5px solid var(--c-yellow);
+    color: var(--c-yellow-d); font-size: 20px;
+    margin-bottom: 12px;
+}
+.entry-hero h1 {
+    font-family: var(--font-head);
+    font-size: 24px; font-weight: 600; color: var(--c-text);
+    margin-bottom: 4px;
+}
+.entry-hero p { font-size: 13px; color: var(--c-text-2); }
+
+.wa-notice {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 14px; background: var(--c-green-l);
+    border: 0.5px solid #C8DCC8; border-radius: var(--radius);
+    font-size: 13px; color: var(--c-green-d);
+    margin-bottom: 18px; flex-wrap: wrap;
+}
+.wa-notice a { color: var(--c-green-d); font-weight: 600; text-decoration: underline; }
+
+.form-err { font-size: 11px; color: var(--c-red); margin-top: 4px; display: block; }
+</style>
 {% endblock %}
 
 {% block main %}
-    <div class="w3-container w3-content w3-center w3-padding-64" style="max-width:800px;" id="entry">
-        <h2 class="w3-wide w3-center">ENTRY</h2>
-        <p class="w3-opacity"><i>Jai Jinendra</i></p>
-        {% if sms_message %}
-            <p class="w3-opacity">
-                <i>
-                    Send notification to {{phone_number}}, by
-                    <a href="https://wa.me/+91{{phone_number}}?text={{sms_message|urlencode}}" target="_blank">WhatsApp</a>
-                        or
-                    <a href="sms:+91{{phone_number}}?body={{sms_message|urlencode}}" target="_blank">Regular SMS</a>
-                    about the donation.
-                </i>
-            </p>
-        {% else %}
-            <p class="w3-opacity"><i>Default mobile number is :- 9999988888</i></p>
-        {% endif %}
-        {% for message in messages %}
-            <span style="color: green;">
-                <b>{{ message }}</b>
-            </span>
-        {% endfor %}
-        <form method="post" action="{% url 'add-record' %}">
-            {% csrf_token %}
-            <div class="w3-row w3-padding-32">
-                <div class="w3-col m6 w3-large w3-margin-bottom">
-                    <div class="w3-row-padding" style="margin:0px -12px 0px -15px">
-                        <div class="w3-half">
-                            {{ form.boli_date }}
-                            <span style="color:red; margin:5px;">
-                                {{ form.boli_date.errors.as_text }}
-                            </span>
-                        </div>
-                        <div class="w3-half">
-                            {{ form.phone_number }}
-                            <span style="color:red; margin:5px;">
-                                {{ form.phone_number.errors.as_text }}
-                            </span>
-                        </div>
-                    </div>
-                    {{ form.description }}
-                    <span style="color:red; margin:5px;">
-                        {{ form.description.errors.as_text }}
-                    </span>
-                </div>
-                <div class="w3-col m6">
-                    {{ form.title }}
-                    {{ form.amount }}
-                    <p style="color:red;">{{ form.amount.errors }}</p>
-                    <button class="w3-button w3-black w3-section w3-right" type="submit">SAVE</button>
-                </div>
-            </div>
-        </form>
+<div class="container">
+<div class="entry-page" id="entry">
+    <div class="entry-hero">
+        <div class="entry-icon"><i class="fas fa-plus"></i></div>
+        <h1>Add Boli Record</h1>
+        <p>{% if mandir %}{{ mandir.name }} — {% endif %}Jai Jinendra</p>
     </div>
+
+    {% if sms_message %}
+    <div class="wa-notice">
+        <i class="fab fa-whatsapp" style="font-size:18px;"></i>
+        <span>
+            Notify <strong>{{ phone_number }}</strong> via
+            <a href="https://wa.me/+91{{ phone_number }}?text={{ sms_message|urlencode }}" target="_blank">WhatsApp</a> or
+            <a href="sms:+91{{ phone_number }}?body={{ sms_message|urlencode }}" target="_blank">SMS</a>
+        </span>
+    </div>
+    {% else %}
+    <div class="msg msg-info" style="margin-bottom:14px;">
+        <i class="fas fa-info-circle"></i>
+        <span>Default mobile: 9999988888 — used when devotee has no number on file</span>
+    </div>
+    {% endif %}
+
+    {% for message in messages %}
+    <div class="msg msg-success"><i class="fas fa-check-circle"></i><span>{{ message }}</span></div>
+    {% endfor %}
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" action="{% url 'add-record' %}">
+                {% csrf_token %}
+                <div class="form-row">
+                    <div class="form-field">
+                        <label>Boli Date</label>{{ form.boli_date }}
+                        {% if form.boli_date.errors %}<span class="form-err">{{ form.boli_date.errors.as_text }}</span>{% endif %}
+                    </div>
+                    <div class="form-field">
+                        <label>Phone Number</label>{{ form.phone_number }}
+                        {% if form.phone_number.errors %}<span class="form-err">{{ form.phone_number.errors.as_text }}</span>{% endif %}
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label>Devotee Name / Dedication</label>{{ form.description }}
+                    {% if form.description.errors %}<span class="form-err">{{ form.description.errors.as_text }}</span>{% endif %}
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label>Boli Type</label>{{ form.title }}
+                    </div>
+                    <div class="form-field">
+                        <label>Amount (₹)</label>{{ form.amount }}
+                        {% if form.amount.errors %}<span class="form-err">{{ form.amount.errors }}</span>{% endif %}
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-block" type="submit"><i class="fas fa-check"></i> Save Record</button>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-    {{ block.super }}
-      <script src = "https://code.jquery.com/jquery-1.10.2.js"></script>
-      <script src = "https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('.datepicker').datepicker({ dateFormat: 'yy-mm-dd', maxDate: new Date() });
-        });
-    </script>
+{{ block.super }}
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+<script src="https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+<script>$(document).ready(function(){ $('.datepicker').datepicker({dateFormat:'yy-mm-dd'}); });</script>
 {% endblock %}
