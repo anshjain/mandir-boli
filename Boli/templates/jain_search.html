@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Search — Jain Calendar{% endblock %}
+
+{% block extra_css %}
+<style>
+.search-page { padding: 24px 0 48px; }
+.page-header { margin-bottom: 24px; }
+.page-header h1 { font-family: var(--font-head); font-size: 26px; font-weight: 700; color: var(--c-text); margin-bottom: 4px; }
+.page-header p { font-size: 13px; color: var(--c-text-3); }
+.bcnav { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--c-text-3); margin-bottom: 20px; flex-wrap: wrap; }
+.bcnav a { color: var(--c-red); }
+.bcnav a:hover { color: var(--c-yellow); }
+.bcnav-tabs { display: flex; gap: 4px; flex-wrap: wrap; padding: 12px 0 0; border-top: 1px solid var(--c-border); margin-top: 8px; }
+.bcnav-tab { padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--c-text-2); text-decoration: none; border: 1px solid var(--c-border); background: var(--c-surface); transition: all .15s; }
+.bcnav-tab:hover { border-color: var(--c-red); color: var(--c-red); }
+.bcnav-tab.active { background: var(--c-red); color: #fff; border-color: var(--c-red); }
+
+.search-bar {
+    display: flex; gap: 8px; margin-bottom: 24px;
+}
+.search-bar input {
+    flex: 1; padding: 11px 16px;
+    border: 1.5px solid var(--c-border); border-radius: var(--radius);
+    font-size: 15px; font-family: var(--font-body); color: var(--c-text);
+    outline: none; background: var(--c-surface);
+    transition: border-color .15s;
+}
+.search-bar input:focus { border-color: var(--c-red); box-shadow: 0 0 0 3px rgba(124,45,18,.07); }
+.search-bar button { padding: 11px 20px; }
+
+.results-header { font-size: 13px; color: var(--c-text-3); margin-bottom: 12px; }
+.results-header strong { color: var(--c-text); }
+
+.results-list { display: flex; flex-direction: column; gap: 8px; }
+.result-row {
+    display: flex; gap: 14px; padding: 14px 16px;
+    background: var(--c-surface); border: 1px solid var(--c-border);
+    border-radius: var(--radius); align-items: center;
+    border-left: 3px solid var(--c-border);
+    transition: background .12s;
+}
+.result-row:hover { background: var(--c-bg); }
+.result-row.cat-kalyanak { border-left-color: var(--c-yellow); }
+.result-row.cat-festival { border-left-color: #b91c1c; }
+.result-row.cat-vrat     { border-left-color: #a16207; }
+
+.result-date { display: flex; flex-direction: column; align-items: center; min-width: 38px; }
+.result-day { font-family: var(--font-head); font-size: 22px; font-weight: 700; line-height: 1; color: var(--c-text); }
+.result-mon { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--c-text-3); }
+.result-wd  { font-size: 9px; color: var(--c-text-3); }
+.result-body { flex: 1; }
+.result-name { font-size: 14px; font-weight: 600; color: var(--c-text); margin-bottom: 5px; }
+.result-meta { display: flex; gap: 6px; align-items: center; }
+.r-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+.r-tag-kalyanak { background: var(--c-yellow-l); color: var(--c-yellow-d); }
+.r-tag-festival { background: #fee2e2; color: #b91c1c; }
+.r-tag-vrat     { background: #fef9c3; color: #a16207; }
+.result-detail { font-size: 12px; color: var(--c-text-3); }
+
+.no-results { text-align: center; padding: 40px 20px; color: var(--c-text-3); }
+.no-results .icon { font-size: 40px; margin-bottom: 10px; }
+.no-results p { font-size: 14px; }
+
+.suggestions { margin-top: 20px; }
+.suggestions p { font-size: 13px; color: var(--c-text-3); margin-bottom: 8px; }
+.sugg-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.sugg-chip {
+    padding: 5px 12px; border-radius: 999px;
+    border: 1px solid var(--c-border); background: var(--c-surface);
+    font-size: 12px; color: var(--c-text-2); text-decoration: none;
+    transition: all .12s;
+}
+.sugg-chip:hover { border-color: var(--c-red); color: var(--c-red); }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="container search-page">
+    <div class="page-header">
+        <h1>Search Calendar</h1>
+        <p>Find Kalyanaks, festivals and observances by name</p>
+    </div>
+
+    <form action="{% url 'jain-search' %}" method="get" class="search-bar">
+        <input type="text" name="q" value="{{ query }}"
+               placeholder="e.g. Mahavir, Parshvanath, Paryushan, Ashtami…"
+               autofocus>
+        <button class="btn btn-primary" type="submit">
+            <i class="fas fa-search"></i> Search
+        </button>
+    </form>
+
+    {% if query %}
+        <p class="results-header">
+            <strong>{{ results|length }} result{{ results|length|pluralize }}</strong> for "{{ query }}"
+        </p>
+        {% if results %}
+        <div class="results-list">
+            {% for r in results %}
+            <div class="result-row cat-{{ r.category|lower }}">
+                <div class="result-date">
+                    <span class="result-day">{{ r.date|slice:":2" }}</span>
+                    <span class="result-mon">{{ r.date|slice:"3:6" }}</span>
+                    <span class="result-wd">{{ r.weekday|slice:":3" }}</span>
+                </div>
+                <div class="result-body">
+                    <div class="result-name">{{ r.name }}</div>
+                    <div class="result-meta">
+                        <span class="r-tag r-tag-{{ r.category|lower }}">{{ r.category }}</span>
+                        <span class="result-detail">{{ r.detail }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-results">
+            <div class="icon">🔍</div>
+            <p>No results found for "<strong>{{ query }}</strong>". Try a different spelling.</p>
+        </div>
+        {% endif %}
+    {% else %}
+        <div class="suggestions">
+            <p>Try searching for:</p>
+            <div class="sugg-chips">
+                <a href="?q=Mahavir" class="sugg-chip">Mahavir</a>
+                <a href="?q=Parshvanath" class="sugg-chip">Parshvanath</a>
+                <a href="?q=Paryushan" class="sugg-chip">Paryushan</a>
+                <a href="?q=Ashtami" class="sugg-chip">Ashtami</a>
+                <a href="?q=Diwali" class="sugg-chip">Diwali</a>
+                <a href="?q=Rohini" class="sugg-chip">Rohini Vrat</a>
+                <a href="?q=Moksha" class="sugg-chip">Moksha Kalyanak</a>
+                <a href="?q=Janma" class="sugg-chip">Janma Kalyanak</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

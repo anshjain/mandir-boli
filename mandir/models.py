@@ -34,6 +34,8 @@ class Mandir(models.Model):
     email = models.EmailField(max_length=70, blank=True, null=True, unique=True)
     description = models.CharField(max_length=255, verbose_name=_("Mandir Description"), blank=True, null=True, unique=True)
     committee_name = models.CharField(max_length=255, blank=True, null=True, unique=True, verbose_name=_("Committee name"))
+    logo = models.ImageField(verbose_name=_("Temple logo / Tirthankar idol"), upload_to='logos/', blank=True, null=True,
+                             help_text=_("Square image of the Tirthankar idol; shown as the temple logo in the navigation."))
     city = models.CharField(max_length=20, verbose_name=_("city"), default='Pune')
     state = models.CharField(max_length=20, verbose_name=_("state"), default='maharashtra')
     pin_code = models.CharField(max_length=6, verbose_name=_("pin code"), default='411021')

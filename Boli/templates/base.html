@@ -1,165 +1,570 @@
-{% load static i18n static %}
+{% load static i18n %}
 <!DOCTYPE html>
-<html>
-    <title>{% block title %}Home{% endblock %} | {% trans "PunyaUday Fund" %}</title>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="google" content="notranslate">
     <meta http-equiv="Content-Language" content="en">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>{% block title %}Home{% endblock %} | {% if mandir.committee_name %}{{ mandir.committee_name }}{% elif mandir.name %}{{ mandir.name }}{% elif mandirs.0.committee_name %}{{ mandirs.0.committee_name }}{% else %}{{ mandirs.0.name|default:"Jain Mandir" }}{% endif %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel='shortcut icon' type='image/x-icon' href="{% if mandirs.0.logo %}{{ mandirs.0.logo.url }}{% else %}{% static 'images/favicon.ico' %}{% endif %}" />
     {% block extra_css %}{% endblock %}
-
     <style>
-    body {font-family: "Lato", sans-serif}
-    .mySlides {display: none}
+    :root {
+        --c-red:        #C8102E;
+        --c-red-d:      #A50D24;
+        --c-red-l:      #FCEBEB;
+        --c-yellow:     #F4C430;
+        --c-yellow-d:   #B8860B;
+        --c-yellow-l:   #FDF6E3;
+        --c-yellow-bg:  #FFFCEC;
+        --c-green:      #1B5E20;
+        --c-green-d:    #0D3A12;
+        --c-green-l:    #F0F7F0;
+        --c-blue:       #0D47A1;
+        --c-blue-d:     #08316E;
+        --c-blue-l:     #E8F0F8;
+        --c-white:      #FFFFFF;
+        --c-bg:         #FFFEF7;
+        --c-surface:    #FFFFFF;
+        --c-border:     #E5DCC4;
+        --c-border-soft:#F0E8D4;
+        --c-text:       #1A1A1A;
+        --c-text-2:     #5A5040;
+        --c-text-3:     #8B7860;
+        --nav-h:        62px;
+        --radius:       8px;
+        --radius-lg:    12px;
+        --shadow:       0 1px 3px rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.04);
+        --shadow-lg:    0 4px 6px rgba(0,0,0,.04), 0 10px 30px rgba(0,0,0,.08);
+        --font-head:    'Cormorant Garamond', Georgia, serif;
+        --font-body:    'Inter', system-ui, -apple-system, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+        font-family: var(--font-body);
+        color: var(--c-text);
+        background: var(--c-bg);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+    a { color: var(--c-blue); text-decoration: none; }
+    a:hover { color: var(--c-red); }
+    img { max-width: 100%; }
 
-    #whatsapp {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: url('https://cdn.wallpapersafari.com/54/0/HluF7g.jpg');
+    .nav {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+        height: var(--nav-h);
+        background: var(--c-white);
+        border-bottom: 0.5px solid var(--c-border);
+        display: flex; align-items: center;
+        padding: 0 18px;
+        gap: 14px;
+    }
+    .nav-brand {
+        display: flex; align-items: center; gap: 11px;
+        text-decoration: none; flex-shrink: 0;
+        margin-right: auto;
+        min-width: 0;
+    }
+    .nav-brand:hover { color: inherit; }
+    .nav-brand-logo {
+        width: 40px; height: 40px; border-radius: 50%;
+        overflow: hidden; flex-shrink: 0;
+        border: 1.5px solid var(--c-yellow);
+        background: linear-gradient(135deg, #C9986A 0%, #8B6F47 100%);
+        display: grid; place-items: center;
+        font-size: 18px;
+    }
+    .nav-brand-logo img {
+        width: 100%; height: 100%;
+        object-fit: cover; display: block;
+    }
+    .nav-brand-text { min-width: 0; }
+    .nav-brand-name {
+        font-family: var(--font-head);
+        font-size: 17px; font-weight: 600;
+        line-height: 1.15; color: var(--c-text);
+        white-space: nowrap; overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 320px;
+    }
+    .nav-brand-sub {
+        font-size: 10px; letter-spacing: .8px;
+        color: var(--c-red); font-weight: 500;
+        margin-top: 2px;
     }
 
-    .speech-bubble {
-        position: relative;
-        background: #fff;
-        border-radius: .4em;
+    .nav-links { display: flex; align-items: center; gap: 2px; }
+    .nav-link {
+        padding: 7px 12px; border-radius: 6px;
+        font-size: 13px; font-weight: 500;
+        color: var(--c-text-2); text-decoration: none;
+        transition: background .15s, color .15s;
+        white-space: nowrap;
+    }
+    .nav-link:hover { background: var(--c-yellow-l); color: var(--c-text); }
+    .nav-link.active { background: var(--c-yellow-l); color: var(--c-yellow-d); font-weight: 600; }
+
+    .nav-search {
+        display: flex; align-items: center;
+        background: var(--c-bg);
+        border: 0.5px solid var(--c-border);
+        border-radius: 6px; overflow: hidden;
+        padding: 0 4px 0 10px;
+    }
+    .nav-search input {
+        background: none; border: none; outline: none;
+        color: var(--c-text); font-size: 13px; width: 140px;
+        padding: 6px 0; font-family: var(--font-body);
+    }
+    .nav-search input::placeholder { color: var(--c-text-3); }
+    .nav-search button {
+        background: none; border: none; color: var(--c-text-3);
+        cursor: pointer; padding: 6px 8px; font-size: 12px;
+    }
+    .nav-search button:hover { color: var(--c-red); }
+
+    .nav-ham {
+        display: none; background: none; border: none;
+        color: var(--c-text); font-size: 20px; cursor: pointer;
+        padding: 6px; border-radius: 6px;
+    }
+    .nav-ham:hover { background: var(--c-yellow-l); }
+
+    .flag-stripe {
+        position: fixed; top: var(--nav-h); left: 0; right: 0; z-index: 899;
+        display: flex; height: 3px;
+    }
+    .flag-stripe span { flex: 1; }
+    .flag-stripe .s-w { background: var(--c-white); border-bottom: 0.5px solid var(--c-border); }
+    .flag-stripe .s-r { background: var(--c-red); }
+    .flag-stripe .s-y { background: var(--c-yellow); }
+    .flag-stripe .s-g { background: var(--c-green); }
+    .flag-stripe .s-b { background: var(--c-blue); }
+
+    .drawer {
+        display: none; flex-direction: column;
+        position: fixed; top: calc(var(--nav-h) + 3px); left: 0; right: 0; z-index: 898;
+        background: var(--c-white);
+        box-shadow: 0 8px 24px rgba(0,0,0,.12);
+        border-bottom: 1px solid var(--c-border);
+    }
+    .drawer.open { display: flex; }
+    .drawer-search {
+        padding: 12px 16px;
+        border-bottom: 0.5px solid var(--c-border);
+        background: var(--c-bg);
+    }
+    .drawer-search form { display: flex; gap: 8px; }
+    .drawer-search input {
+        flex: 1; padding: 10px 12px; border-radius: 7px;
+        border: 0.5px solid var(--c-border); font-size: 14px; outline: none;
+        font-family: var(--font-body); background: var(--c-white);
+    }
+    .drawer-search input:focus { border-color: var(--c-red); }
+    .drawer-search button {
+        padding: 10px 16px; background: var(--c-red);
+        border: none; border-radius: 7px; color: var(--c-white);
+        cursor: pointer; font-size: 13px; font-weight: 500;
+    }
+    .drawer-link {
+        padding: 14px 18px; color: var(--c-text);
+        font-size: 14px; font-weight: 500;
+        border-bottom: 0.5px solid var(--c-border-soft);
+        text-decoration: none;
+        display: flex; align-items: center; gap: 12px;
+    }
+    .drawer-link:hover { background: var(--c-yellow-l); color: var(--c-text); }
+    .drawer-link i { width: 18px; color: var(--c-yellow-d); font-size: 14px; }
+
+    .hero { position: relative; overflow: hidden; background: var(--c-green-d); }
+    .hero-slide { display: none; position: relative; }
+    .hero-slide img {
+        width: 100%; display: block;
+        height: 360px; object-fit: cover; opacity: .92;
+    }
+    .hero-caption {
+        position: absolute; bottom: 0; left: 0; right: 0;
+        padding: 40px 24px 20px;
+        background: linear-gradient(transparent, rgba(13,58,18,.78));
+        color: var(--c-white);
+    }
+    .hero-caption h3 {
+        font-family: var(--font-head);
+        font-size: 24px; font-weight: 600; margin-bottom: 4px;
+    }
+    .hero-caption h3 a { color: var(--c-white); }
+    .hero-caption p { font-size: 13px; opacity: .85; }
+
+    .page { padding-top: calc(var(--nav-h) + 3px); }
+    .container { max-width: 1060px; margin: 0 auto; padding: 0 20px; }
+    .section { padding: 28px 0; }
+
+    .divider {
+        display: flex; align-items: center; gap: 12px;
+        color: var(--c-text-3); font-size: 18px;
+        margin: 24px 0 18px;
+    }
+    .divider::before, .divider::after {
+        content: ''; flex: 1;
+        height: 1px; background: var(--c-border);
     }
 
-    .speech-bubble:after {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 10%;
-        width: 0;
-        height: 0;
-        border: 20px solid transparent;
-        border-right-color: #fff;
-        border-left: 0;
-        border-bottom: 0;
-        margin-top: -10px;
-        margin-left: -16px;
+    .card {
+        background: var(--c-surface);
+        border: 0.5px solid var(--c-border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        overflow: hidden;
     }
-    .fixedButton{
-        position: fixed;
-        bottom: 0px;
-        right: 0px;
-        padding: 20px;
+    .card-head {
+        padding: 14px 18px;
+        border-bottom: 0.5px solid var(--c-border);
+        display: flex; align-items: center; gap: 12px;
     }
-    .roundedFixedBtn{
-      height: 60px;
-      line-height: 80px;
-      width: 60px;
-      font-size: 2em;
-      font-weight: bold;
-      border-radius: 50%;
-      background-color: #FFF;
-      color: white;
-      text-align: center;
-      cursor: pointer;
+    .card-head-icon {
+        width: 36px; height: 36px; border-radius: 8px;
+        background: var(--c-yellow-l); color: var(--c-yellow-d);
+        display: grid; place-items: center; font-size: 16px; flex-shrink: 0;
+    }
+    .card-head-title {
+        font-family: var(--font-head);
+        font-size: 19px; font-weight: 600; color: var(--c-text);
+    }
+    .card-head-sub { font-size: 12px; color: var(--c-text-3); margin-top: 2px; }
+    .card-body { padding: 18px; }
+
+    .form-field { margin-bottom: 16px; }
+    .form-field label {
+        display: block; font-size: 13px; font-weight: 500;
+        color: var(--c-text-2); margin-bottom: 6px;
+    }
+    .form-field input, .form-field select, .form-field textarea,
+    .form-input, select.form-input, textarea.form-input {
+        width: 100%; padding: 10px 14px;
+        border: 1px solid var(--c-border);
+        border-radius: var(--radius);
+        font-size: 14px; font-family: var(--font-body);
+        color: var(--c-text); background: var(--c-surface); outline: none;
+        transition: border-color .15s, box-shadow .15s;
+        box-sizing: border-box;
+    }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus,
+    .form-input:focus {
+        border-color: var(--c-red);
+        box-shadow: 0 0 0 3px rgba(200,16,46,.08);
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-row.full { grid-template-columns: 1fr; }
+
+    .btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 11px 20px; border-radius: var(--radius);
+        font-size: 14px; font-weight: 500; cursor: pointer;
+        border: none; text-decoration: none;
+        transition: background .15s, transform .05s;
+        white-space: nowrap;
+        font-family: var(--font-body);
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: var(--c-red); color: var(--c-white); }
+    .btn-primary:hover { background: var(--c-red-d); color: var(--c-white); }
+    .btn-secondary { background: var(--c-blue); color: var(--c-white); }
+    .btn-secondary:hover { background: var(--c-blue-d); color: var(--c-white); }
+    .btn-accent {
+        background: var(--c-white); color: var(--c-text);
+        border: 0.5px solid var(--c-border);
+    }
+    .btn-accent:hover { background: var(--c-yellow-l); color: var(--c-text); border-color: var(--c-yellow); }
+    .btn-ghost {
+        background: transparent; color: var(--c-text-2);
+        border: 0.5px solid var(--c-border);
+    }
+    .btn-ghost:hover { border-color: var(--c-red); color: var(--c-red); }
+    .btn-wa { background: var(--c-green); color: var(--c-white); }
+    .btn-wa:hover { background: var(--c-green-d); color: var(--c-white); }
+    .btn-block { width: 100%; justify-content: center; }
+    .btn-sm { padding: 7px 14px; font-size: 13px; }
+
+    .msg { padding: 12px 16px; border-radius: var(--radius); font-size: 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+    .msg i { flex-shrink: 0; }
+    .msg-success { background: var(--c-green-l); border: 0.5px solid #C8DCC8; color: var(--c-green-d); }
+    .msg-error   { background: var(--c-red-l); border: 0.5px solid #F7C1C1; color: var(--c-red-d); }
+    .msg-info    { background: var(--c-yellow-l); border: 0.5px solid #F0E4B8; color: var(--c-yellow-d); }
+
+    .wa-bubble {
+        position: fixed; bottom: 22px; right: 22px; z-index: 850;
+        width: 54px; height: 54px; border-radius: 50%;
+        background: var(--c-green); border: none; cursor: pointer;
+        box-shadow: 0 4px 16px rgba(27,94,32,.35);
+        display: grid; place-items: center;
+        font-size: 26px; color: var(--c-white);
+        transition: transform .15s;
+    }
+    .wa-bubble:hover { transform: scale(1.08); background: var(--c-green-d); }
+
+    .modal-backdrop {
+        display: none; position: fixed; inset: 0;
+        background: rgba(13,58,18,.45); z-index: 1000;
+        align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+        background: var(--c-surface); border-radius: var(--radius-lg);
+        width: 100%; max-width: 460px; max-height: 92vh; overflow-y: auto;
+        box-shadow: var(--shadow-lg);
+    }
+    .modal-head {
+        padding: 14px 18px;
+        border-bottom: 0.5px solid var(--c-border);
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-head h3 { font-family: var(--font-head); font-size: 19px; font-weight: 600; }
+    .modal-close {
+        background: none; border: none; font-size: 22px;
+        color: var(--c-text-3); cursor: pointer; padding: 2px 8px; border-radius: 5px;
+        line-height: 1;
+    }
+    .modal-close:hover { color: var(--c-text); background: var(--c-bg); }
+    .modal-body { padding: 18px; }
+
+    .footer {
+        background: var(--c-green-d); color: rgba(255,255,255,.6);
+        padding: 28px 20px 20px;
+        margin-top: 60px;
+    }
+    .footer-inner {
+        max-width: 1060px; margin: 0 auto;
+        display: flex; flex-direction: column;
+        align-items: center; gap: 10px; text-align: center;
+    }
+    .footer-name {
+        font-family: var(--font-head);
+        font-size: 19px; color: var(--c-yellow);
+        font-weight: 600;
+    }
+    .footer-social { display: flex; gap: 16px; font-size: 18px; }
+    .footer-social a { color: rgba(255,255,255,.5); }
+    .footer-social a:hover { color: var(--c-yellow); }
+    .footer-copy { font-size: 12px; }
+    .footer-copy a { color: rgba(255,255,255,.55); }
+    .footer-copy a:hover { color: var(--c-yellow); }
+
+    #googleMap { height: 280px; width: 100%; }
+
+    @media (max-width: 768px) {
+        .nav-links, .nav-search { display: none; }
+        .nav-ham { display: block; }
+        .nav-brand-sub { display: none; }
+        .nav-brand-name { font-size: 14px; max-width: 200px; }
+        .hero-slide img { height: 220px; }
+        .hero-caption { padding: 28px 16px 14px; }
+        .hero-caption h3 { font-size: 17px; }
+        .form-row { grid-template-columns: 1fr; }
+        .section { padding: 18px 0; }
+        .card-body { padding: 14px; }
+    }
+    @media (max-width: 480px) {
+        :root { --nav-h: 58px; }
+        .nav-brand-name { font-size: 13px; }
+        .nav-brand-logo { width: 34px; height: 34px; font-size: 15px; }
+        .container { padding: 0 14px; }
     }
     </style>
+</head>
+<body>
+{% block FBTag %}{% endblock %}
 
-    <link rel='shortcut icon' type='image/x-icon' href="{% static 'images/favicon.ico' %}" />
-    <body>
-        {% block FBTag %}{% endblock %}
-        {% include 'navbar.html' %}
-
-        <!-- Page content -->
-        <div class="w3-content" style="max-width:2000px;margin-top:46px">
-
-            <!-- Automatic Slideshow Images -->
-            <div>
-                {% if mandirs.0.get_images %}
-                    {% for img_obj in mandirs.0.get_images %}
-                        <div class="mySlides w3-display-container w3-center">
-                            <img src="{{ img_obj.image.url }}" style="width:100%;">
-                            <div class="w3-display-bottommiddle w3-container w3-text-white w3-padding-32 w3-hide-small">
-                              <h3><a href="{{img_obj.event_url}}">{{img_obj.title | safe }}</a></h3>
-                              <p><b>{{img_obj.description}}</b></p>
-                            </div>
-                        </div>
-                    {%endfor%}
-                {% else %}
-                    {% include 'banner_data.html' %}
-                {% endif %}
-            </div>
-
-            <!-- The Band Section -->
-            {% block main %}{% endblock %}
-
-        <!-- End Page Content -->
-        </div>
-        <!-- Add Google Maps -->
-        <div id="googleMap" style="height:400px;" class="w3-grayscale-max"></div>
-
-        <script src="{% static 'js/punyauday.js' %}"></script>
-
-        <script>
-        carousel();
-        function initialize() {
-
-            {% if mandir.lat %}
-                var myCenter=new google.maps.LatLng({{mandir.lat}}, {{mandir.long}});
+<nav class="nav">
+    <a class="nav-brand" href="{% url 'home' %}">
+        <div class="nav-brand-logo">
+            {% if mandirs.0.logo %}
+                <img src="{{ mandirs.0.logo.url }}" alt="{{ mandirs.0.name }}">
+            {% elif mandir.logo %}
+                <img src="{{ mandir.logo.url }}" alt="{{ mandir.name }}">
             {% else %}
-                var myCenter=new google.maps.LatLng(18.557024, 73.75092)
+                🧘
             {% endif %}
-            plot_map(myCenter, "googleMap");
+        </div>
+        <div class="nav-brand-text">
+            <div class="nav-brand-name">{% if mandir.name %}{{ mandir.name }}{% elif mandir.committee_name %}{{ mandir.committee_name }}{% elif mandirs.0.name %}{{ mandirs.0.name }}{% elif mandirs.0.committee_name %}{{ mandirs.0.committee_name }}{% else %}Jain Mandir{% endif %}</div>
+            <div class="nav-brand-sub">JAI JINENDRA</div>
+        </div>
+    </a>
 
-            /* Create dynamic grap for all temples */
-            {% for mdir in mandirs %}
-                var loc = new google.maps.LatLng({{mdir.lat}}, {{mdir.long}});
-                plot_map(loc, "map_{{mdir.id}}");
-            {% endfor %}
-        }
+    <form class="nav-search" action="{% url 'record-list' %}" method="get">
+        <input type="number" name="phone_number" placeholder="Search mobile no…" maxlength="10" value="{{ phone_number|default:'' }}" id="pNumber">
+        <button type="submit" aria-label="Search"><i class="fas fa-search"></i></button>
+    </form>
 
-        function plot_map(location, div_id) {
-            var mapOptions= {
-                center: location,
-                zoom:14, scrollwheel: false, draggable: false,
-                mapTypeId:google.maps.MapTypeId.ROADMAP
-            };
-
-            var map=new google.maps.Map(document.getElementById(div_id), mapOptions);
-
-            var marker = new google.maps.Marker({
-                position: location,
-            });
-
-            marker.setMap(map);
-        }
-
-        function isNumberKey(evt){
-            var charCode = (evt.which) ? evt.which : event.keyCode
-            if (charCode > 31 && (charCode < 48 || charCode > 57))
-                return false;
-            return true;
-        }
-        </script>
-        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDb82Qph6YtEFs9VRyfQk3BgDib5YaGsfk&callback=initialize">
-        </script>
-
-        <!-- Footer -->
-        <footer class="w3-container w3-padding-64 w3-center w3-opacity w3-light-grey w3-xlarge">
-            {% include 'footer.html' %}
-        </footer>
-        {% if request.path == '/' or  request.path == '/raise-request/' or request.path == '/search/' %}
-            <div class="w3-container">
-                <i class="fixedButton" onclick="document.getElementById('id01').style.display='block'" >
-                 <div class="roundedFixedBtn"><i style="color:green; font-size:60px;" class="fa fa-whatsapp"></i></div>
-                </i>
-               {%if mandir %}
-                    {% include 'chat_template.html' with mandir=mandir %}
-                {% else %}
-                    {% include 'chat_template.html' with mandir=mandirs.0 %}
-                {% endif %}
-            </div>
+    <div class="nav-links">
+        <a href="{% url 'home' %}" class="nav-link {% if request.path == '/' or request.path == '/search' %}active{% endif %}">Home</a>
+        <a href="{% url 'jain-calendar' %}" class="nav-link {% if '/jain-calendar' in request.path %}active{% endif %}">Calendar</a>
+        <a href="{% url 'jain-reminders' %}" class="nav-link {% if '/jain-reminders' in request.path %}active{% endif %}">Reminders</a>
+        <!-- <a href="{% url 'jain-search' %}" class="nav-link {% if '/jain-search' in request.path %}active{% endif %}">Search</a> -->
+        {% if request.user.is_authenticated %}
+            <a href="{% url 'add-record' %}#entry" class="nav-link {% if '/add' in request.path %}active{% endif %}">+ Add</a>
+            {% if request.user.is_staff and not request.user.is_superuser %}
+                <a href="{% url 'admin:index' %}" class="nav-link" target="_blank">Admin</a>
+            {% endif %}
+            <a href="{% url 'about' %}" class="nav-link {% if '/about-us' in request.path %}active{% endif %}">About</a>
+            <a href="{% url 'contact-us' %}" class="nav-link {% if '/contact-us' in request.path %}active{% endif %}">Contact</a>
+            <form method="post" action="{% url 'logout' %}" style="display:inline; margin:0; padding:0;">
+                {% csrf_token %}
+                <button type="submit" class="nav-link" style="background:none; border:none; cursor:pointer; padding:6px 12px; font:inherit; color:inherit;">Logout</button>
+            </form>
+        {% else %}
+            <a href="{% url 'raise-request' %}#entry" class="nav-link {% if '/raise-request' in request.path %}active{% endif %}">+ Add</a>
+            <a href="{% url 'about' %}" class="nav-link {% if '/about-us' in request.path %}active{% endif %}">About</a>
+            <a href="{% url 'contact-us' %}" class="nav-link {% if '/contact-us' in request.path %}active{% endif %}">Contact</a>
+            <a href="{% url 'login' %}" class="nav-link {% if '/login' in request.path %}active{% endif %}">Login</a>
         {% endif %}
-    {% block extra_js %}
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    {% endblock %}
-    </body>
-</html>
+    </div>
 
+    <button class="nav-ham" onclick="toggleDrawer()" aria-label="Menu">
+        <i class="fas fa-bars" id="ham-icon"></i>
+    </button>
+</nav>
+
+<div class="flag-stripe" aria-hidden="true">
+    <span class="s-w"></span>
+    <span class="s-r"></span>
+    <span class="s-y"></span>
+    <span class="s-g"></span>
+    <span class="s-b"></span>
+</div>
+
+<div class="drawer" id="drawer">
+    <div class="drawer-search">
+        <form action="{% url 'record-list' %}" method="get">
+            <input type="number" name="phone_number" placeholder="Search mobile number…" maxlength="10" value="{{ phone_number|default:'' }}">
+            <button type="submit"><i class="fas fa-search"></i> Search</button>
+        </form>
+    </div>
+    <a href="{% url 'home' %}" class="drawer-link" onclick="closeDrawer()"><i class="fas fa-home"></i> Home</a>
+    <a href="{% url 'jain-calendar' %}" class="drawer-link" onclick="closeDrawer()"><i class="fas fa-calendar-alt"></i> Jain Calendar</a>
+    <a href="{% url 'jain-reminders' %}" class="drawer-link" onclick="closeDrawer()"><i class="fas fa-bell"></i> Reminders</a>
+    <!-- <a href="{% url 'jain-search' %}" class="drawer-link" onclick="closeDrawer()"><i class="fas fa-search"></i> Search Calendar</a> -->
+    {% if request.user.is_authenticated %}
+        <a href="{% url 'add-record' %}#entry" class="drawer-link" onclick="closeDrawer()"><i class="fas fa-plus"></i> Add Record</a>
+        {% if request.user.is_staff and not request.user.is_superuser %}
+            <a href="{% url 'admin:index' %}" class="drawer-link" target="_blank"><i class="fas fa-cog"></i> Admin</a>
+        {% endif %}
+        <a href="{% url 'about' %}" class="drawer-link" onclick="closeDrawer()"><i class="fas fa-info-circle"></i> About</a>
+        <a href="{% url 'return' %}" class="drawer-link" onclick="closeDrawer()"><i class="fas fa-undo"></i> Return Policy</a>
+        <a href="{% url 'contact-us' %}" class="drawer-link" onclick="closeDrawer()"><i class="fas fa-envelope"></i> Contact</a>
+        <form method="post" action="{% url 'logout' %}" style="margin:0; padding:0;">
+            {% csrf_token %}
+            <button type="submit" class="drawer-link" style="background:none; border:none; cursor:pointer; width:100%; text-align:left; font:inherit; color:inherit;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </form>
+    {% else %}
+        <a href="{% url 'raise-request' %}#entry" class="drawer-link" onclick="closeDrawer()"><i class="fas fa-plus"></i> Add Request</a>
+        <a href="{% url 'about' %}" class="drawer-link" onclick="closeDrawer()"><i class="fas fa-info-circle"></i> About</a>
+        <a href="{% url 'return' %}" class="drawer-link" onclick="closeDrawer()"><i class="fas fa-undo"></i> Return Policy</a>
+        <a href="{% url 'contact-us' %}" class="drawer-link" onclick="closeDrawer()"><i class="fas fa-envelope"></i> Contact</a>
+        <a href="{% url 'login' %}" class="drawer-link" onclick="closeDrawer()"><i class="fas fa-sign-in-alt"></i> Login</a>
+    {% endif %}
+</div>
+
+<div class="page">
+    {% if request.path == '/' %}
+    <div class="hero">
+        {% if mandirs.0.get_images %}
+            {% for img_obj in mandirs.0.get_images %}
+            <div class="hero-slide">
+                <img src="{{ img_obj.image.url }}" alt="{{ img_obj.title }}">
+                <div class="hero-caption">
+                    <h3><a href="{{ img_obj.event_url }}">{{ img_obj.title|safe }}</a></h3>
+                    <p>{{ img_obj.description }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            {% include 'banner_data.html' %}
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% block main %}{% endblock %}
+
+    <div id="googleMap"></div>
+</div>
+
+<footer class="footer">
+    <div class="footer-inner">
+        <div class="footer-name">ꣽ नमः सिद्धेभ्यः</div>
+        <div style="font-size: 13px; color: rgba(255,255,255,.55);">
+            {% if mandirs.0.committee_name %}{{ mandirs.0.committee_name }}
+            {% elif mandirs.0.name %}{{ mandirs.0.name }}
+            {% else %}Jain Mandir{% endif %}
+        </div>
+        <div class="footer-social">
+            <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+        </div>
+        <p class="footer-copy">Developed by <a href="https://anshjain.github.io/" target="_blank">Shreeyansh Jain</a></p>
+    </div>
+</footer>
+
+{% if mandir or mandirs %}
+<button class="wa-bubble" onclick="document.getElementById('waModal').classList.add('open')" aria-label="WhatsApp">
+    <i class="fab fa-whatsapp"></i>
+</button>
+<div class="modal-backdrop" id="waModal">
+    <div class="modal wa-modal">
+        <div class="modal-head wa-modal-head">
+            <h3><i class="fab fa-whatsapp" style="color:#25D366; margin-right:6px;"></i> WhatsApp</h3>
+            <button class="modal-close" onclick="document.getElementById('waModal').classList.remove('open')">×</button>
+        </div>
+        <div class="modal-body wa-modal-body">
+            {% if mandir %}{% include 'chat_template.html' with mandir=mandir %}
+            {% else %}{% include 'chat_template.html' with mandir=mandirs.0 %}{% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script src="{% static 'js/punyauday.js' %}?v={{ static_version }}"></script>
+<script>
+    carousel();
+    function toggleDrawer() {
+        var d = document.getElementById('drawer');
+        var i = document.getElementById('ham-icon');
+        var open = d.classList.toggle('open');
+        i.className = open ? 'fas fa-times' : 'fas fa-bars';
+    }
+    function closeDrawer() {
+        document.getElementById('drawer').classList.remove('open');
+        document.getElementById('ham-icon').className = 'fas fa-bars';
+    }
+    function isNumberKey(evt) {
+        var c = (evt.which) ? evt.which : event.keyCode;
+        return !(c > 31 && (c < 48 || c > 57));
+    }
+    function initialize() {
+        {% if mandir.lat %}var center = new google.maps.LatLng({{ mandir.lat }},{{ mandir.long }});
+        {% else %}var center = new google.maps.LatLng(18.557024,73.75092);{% endif %}
+        plot_map(center,"googleMap");
+        {% for mdir in mandirs %}
+        plot_map(new google.maps.LatLng({{ mdir.lat }},{{ mdir.long }}),"map_{{ mdir.id }}");
+        {% endfor %}
+    }
+    function plot_map(loc, id) {
+        var el = document.getElementById(id); if (!el) return;
+        var map = new google.maps.Map(el,{center:loc,zoom:14,scrollwheel:false,draggable:false,mapTypeId:google.maps.MapTypeId.ROADMAP});
+        new google.maps.Marker({position:loc,map:map});
+    }
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDb82Qph6YtEFs9VRyfQk3BgDib5YaGsfk&callback=initialize" async defer></script>
+{% block extra_js %}<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>{% endblock %}
+</body>
+</html>

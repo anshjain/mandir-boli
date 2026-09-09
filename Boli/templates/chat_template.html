@@ -1,28 +1,134 @@
 {% load static i18n %}
-<div id="id01" class="w3-modal">
-    <div class="w3-modal-content w3-card-3" style="border-radius:15px !important; max-width:400px">
-          <div class="w3-center" style="background-color:#013220; border-radius:15px 15px 0px 0px">
-                <span onclick="document.getElementById('id01').style.display='none'" class="w3-button w3-xlarge w3-transparent w3-display-topright w3-circle" style="color:white;"title="Close Modal">×</span>
-                <img src="{% static '/images/author/mandirji.jpeg' %}" alt="Mandir ji" style="width:20%; padding:5px;" class="w3-circle">
-                <span class="w3-text-white"> {{mandir.name}} </span>
-          </div>
-          <div id="whatsapp" class="w3-container w3-border-top w3-padding-16 w3-light-grey" style="height:350px">
-                 <div class="speech-bubble w3-white w3-round-medium w3-card-2 speech-bubble" style="width:80%; padding:10px;">
-                      <div class="bubble">
-                            <div class="txt">
-                                  <p class="w3-text-gray">{{mandir.name}}</p>
-                                  <p class="w3-text-black"> जय जिनेन्द्र </p>
-                                  <p class="w3-text-black"> {{mandir.whatsapp_message | safe}}</p>
-                            </div>
-                            <div class="bubble-arrow"></div>
-                      </div>
-                 </div>
-          </div>
-          <div class="w3-container w3-section">
-             <button class="w3-button w3-block w3-green w3-section w3-padding w3-round-xxlarge"
-                     onclick="Openwhatsapp('+91{{mandir.whatsapp_number}}')">
-                 <i class="fa fa-whatsapp" style="font-size:24px; font-weight:bold;"> Start chat </i>
-             </button>
-          </div>
+<div class="wa-chat">
+    <div class="wa-chat-header">
+        <div class="wa-chat-avatar">
+            {% if mandir.logo %}
+                <img src="{{ mandir.logo.url }}" alt="{{ mandir.name }}">
+            {% else %}
+                <img src="{% static 'images/author/mandirji.jpeg' %}" alt="Mandir ji">
+            {% endif %}
+        </div>
+        <div class="wa-chat-meta">
+            <div class="wa-chat-name">{{ mandir.name }}</div>
+            <div class="wa-chat-status"><span class="wa-dot"></span> Online</div>
+        </div>
+    </div>
+    <div class="wa-chat-area">
+        <div class="wa-bubble-msg">
+            <div class="wa-bubble-name">{{ mandir.name }}</div>
+            <div class="wa-bubble-text">जय जिनेन्द्र 🙏</div>
+            {% if mandir.whatsapp_message %}
+            <div class="wa-bubble-text">{{ mandir.whatsapp_message | safe }}</div>
+            {% endif %}
+            <div class="wa-bubble-time">now</div>
+        </div>
+    </div>
+    <div class="wa-chat-footer">
+        <button type="button" class="wa-start-btn" onclick="Openwhatsapp('+91{{ mandir.whatsapp_number }}')">
+            <i class="fab fa-whatsapp"></i> Start chat on WhatsApp
+        </button>
     </div>
 </div>
+
+<style>
+.wa-modal { max-width: 380px; }
+.wa-modal-head {
+    background: #075E54; color: #fff;
+    border-bottom: none !important;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.wa-modal-head h3 { color: #fff; }
+.wa-modal-head .modal-close { color: rgba(255,255,255,.85); }
+.wa-modal-head .modal-close:hover { color: #fff; background: rgba(255,255,255,.15); }
+.wa-modal-body { padding: 0 !important; background: #ECE5DD; }
+
+.wa-chat { display: flex; flex-direction: column; min-height: 340px; }
+
+.wa-chat-header {
+    background: #128C7E; color: #fff;
+    padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+}
+.wa-chat-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    overflow: hidden; flex-shrink: 0;
+    border: 1.5px solid rgba(255,255,255,.4);
+    background: #fff;
+}
+.wa-chat-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wa-chat-meta { min-width: 0; flex: 1; }
+.wa-chat-name {
+    font-size: 14px; font-weight: 600; color: #fff;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.wa-chat-status { font-size: 11px; opacity: .85; display: flex; align-items: center; gap: 5px; }
+.wa-dot { width: 7px; height: 7px; border-radius: 50%; background: #4FCE5D; display: inline-block; }
+
+.wa-chat-area {
+    flex: 1;
+    padding: 16px 14px;
+    background: #ECE5DD;
+    background-image: linear-gradient(rgba(236,229,221,.94), rgba(236,229,221,.94));
+    min-height: 200px;
+    display: flex; flex-direction: column; gap: 8px;
+    align-items: flex-start;
+}
+.wa-bubble-msg {
+    background: #fff;
+    border-radius: 8px;
+    padding: 8px 12px 6px;
+    max-width: 85%;
+    box-shadow: 0 1px 1px rgba(0,0,0,.08);
+    position: relative;
+}
+.wa-bubble-msg::before {
+    content: '';
+    position: absolute; top: 0; left: -7px;
+    width: 0; height: 0;
+    border-top: 8px solid #fff;
+    border-left: 8px solid transparent;
+}
+.wa-bubble-name {
+    font-size: 12px; font-weight: 600; color: #075E54;
+    margin-bottom: 2px;
+}
+.wa-bubble-text {
+    font-size: 13px; color: #303030; line-height: 1.45;
+    margin-bottom: 4px;
+    word-wrap: break-word;
+}
+.wa-bubble-time {
+    font-size: 10px; color: #999; text-align: right;
+    margin-top: 2px;
+}
+
+.wa-chat-footer {
+    padding: 12px 14px;
+    background: #F0F0F0;
+    border-top: 0.5px solid rgba(0,0,0,.08);
+}
+.wa-start-btn {
+    width: 100%; padding: 11px;
+    background: #25D366; color: #fff;
+    border: none; border-radius: 24px;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: var(--font-body);
+    transition: background .15s;
+}
+.wa-start-btn:hover { background: #1EB855; }
+.wa-start-btn i { font-size: 18px; }
+
+@media (max-width: 480px) {
+    .wa-modal { max-width: 100%; }
+    .wa-chat-area { min-height: 180px; }
+}
+</style>
+
+<script>
+function Openwhatsapp(num) {
+    var url = 'https://wa.me/' + num.replace(/[^\d+]/g, '');
+    window.open(url, '_blank');
+}
+</script>

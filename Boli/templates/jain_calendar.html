@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Jain Calendar — {{ month_name }} {{ year }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.jcal-page { padding: 22px 0 48px; }
+
+.bcnav {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--c-text-3);
+    margin-bottom: 6px; flex-wrap: wrap;
+}
+.bcnav a { color: var(--c-blue); }
+.bcnav a:hover { color: var(--c-red); }
+.bcnav-sep { opacity: .4; }
+
+.jcal-h1 {
+    font-family: var(--font-head);
+    font-size: 26px; font-weight: 600; color: var(--c-text);
+    margin-bottom: 4px;
+}
+.jcal-sub { font-size: 13px; color: var(--c-text-2); margin-bottom: 14px; }
+
+.jcal-tabs {
+    display: flex; gap: 4px;
+    border-bottom: 0.5px solid var(--c-border);
+    margin-bottom: 18px;
+}
+.jcal-tab {
+    padding: 8px 16px;
+    font-size: 13px; font-weight: 500;
+    color: var(--c-text-2); text-decoration: none;
+    border-radius: 6px 6px 0 0;
+    margin-bottom: -0.5px;
+}
+.jcal-tab:hover { color: var(--c-red); }
+.jcal-tab.active {
+    background: var(--c-red); color: var(--c-white);
+    font-weight: 600;
+}
+
+.today-bar {
+    background: var(--c-yellow-l);
+    border: 0.5px solid #F0E4B8;
+    border-radius: var(--radius);
+    padding: 11px 14px;
+    margin-bottom: 18px;
+    display: flex; align-items: center; gap: 14px;
+    flex-wrap: wrap; font-size: 13px;
+}
+.today-bar .lbl {
+    color: var(--c-yellow-d); letter-spacing: 0.4px;
+    font-size: 11px; font-weight: 600;
+}
+.today-bar .val { color: var(--c-text); font-weight: 600; }
+.today-bar .stat { color: var(--c-text-2); display: inline-flex; align-items: center; gap: 5px; }
+.today-bar .stat strong { color: var(--c-text); }
+.today-bar .sep { color: #d4c89a; }
+.today-bar .icon-sun  { color: var(--c-yellow); }
+.today-bar .icon-moon { color: var(--c-red); }
+.today-event-badge {
+    padding: 3px 10px; border-radius: 5px;
+    font-size: 11px; font-weight: 600;
+}
+.tb-parv     { background: var(--c-green-l); color: var(--c-green); }
+.tb-kalyanak { background: var(--c-yellow-bg); color: var(--c-yellow-d); }
+.tb-festival { background: var(--c-red-l); color: var(--c-red); }
+
+.month-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-bottom: 14px;
+}
+.month-nav-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 7px 12px; border-radius: var(--radius);
+    border: 0.5px solid var(--c-border); background: var(--c-surface);
+    font-size: 12px; font-weight: 500; color: var(--c-text-2);
+    text-decoration: none;
+}
+.month-nav-btn:hover { border-color: var(--c-red); color: var(--c-red); }
+.month-title {
+    font-family: var(--font-head);
+    font-size: 22px; font-weight: 600; color: var(--c-text);
+    text-align: center;
+}
+.month-title select {
+    font-family: var(--font-head); font-size: 22px;
+    border: none; background: none; color: var(--c-text);
+    font-weight: 600; cursor: pointer; outline: none;
+}
+.month-counts {
+    display: flex; gap: 10px; justify-content: center;
+    margin-top: 4px; flex-wrap: wrap;
+}
+.month-count { font-size: 11px; color: var(--c-text-3); display: inline-flex; align-items: center; gap: 4px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot-k { background: var(--c-yellow); }
+.dot-p { background: var(--c-green); }
+.dot-f { background: var(--c-red); }
+
+.cal-layout {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 18px;
+    align-items: start;
+}
+
+.cal-grid-card {
+    background: var(--c-surface);
+    border: 0.5px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    padding: 14px;
+}
+.cal-wd-row {
+    display: grid; grid-template-columns: repeat(7,1fr);
+    gap: 4px; margin-bottom: 6px;
+}
+.cal-wd {
+    text-align: center;
+    font-size: 10px; font-weight: 600;
+    color: var(--c-text-3); letter-spacing: .5px;
+    padding: 6px 0;
+}
+.cal-body { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+.cal-cell {
+    aspect-ratio: 1; min-height: 52px;
+    padding: 5px; border-radius: 5px;
+    border: 0.5px solid var(--c-border);
+    background: var(--c-white);
+    position: relative;
+    color: var(--c-text);
+    font-size: 13px;
+}
+.cal-cell:hover { background: var(--c-yellow-l); }
+.cal-cell.cal-today { background: var(--c-red); border-color: var(--c-red); color: var(--c-white); font-weight: 600; }
+.cal-cell.cal-today:hover { background: var(--c-red-d); }
+.cal-cell.has-k { background: var(--c-yellow-bg); border-color: var(--c-yellow); }
+.cal-cell.has-f { background: var(--c-red-l); border-color: #F7C1C1; }
+.cal-cell.has-p:not(.has-k):not(.has-f) { border-color: #C8DCC8; }
+.cal-cell.cal-empty { background: var(--c-bg); border-color: transparent; opacity: .4; }
+.cal-day-num { font-size: 13px; line-height: 1; display: block; }
+.cal-dots {
+    position: absolute; bottom: 4px; left: 5px; right: 5px;
+    display: flex; gap: 3px; align-items: center;
+}
+.cal-cell.cal-today .dot { background: var(--c-white) !important; }
+
+.sidebar { display: flex; flex-direction: column; gap: 12px; }
+.sidebar-section {
+    background: var(--c-surface);
+    border: 0.5px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    box-shadow: var(--shadow);
+}
+.sidebar-head {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 10px;
+}
+.sidebar-head .swatch { width: 8px; height: 8px; border-radius: 50%; }
+.swatch.k { background: var(--c-yellow); }
+.swatch.p { background: var(--c-green); }
+.swatch.f { background: var(--c-red); }
+.sidebar-head h3 {
+    margin: 0; font-size: 12px; font-weight: 600;
+    color: var(--c-text); letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+.sidebar-head .count {
+    margin-left: auto; font-size: 11px; color: var(--c-text-3);
+}
+.s-item {
+    display: flex; gap: 12px; padding: 8px 0;
+    border-bottom: 0.5px solid var(--c-border-soft);
+    align-items: flex-start;
+}
+.s-item:last-child { border-bottom: none; }
+.s-date { text-align: center; min-width: 32px; flex-shrink: 0; }
+.s-day { font-family: var(--font-head); font-size: 17px; font-weight: 600; line-height: 1; }
+.s-day.k { color: var(--c-yellow-d); }
+.s-day.p { color: var(--c-green); }
+.s-day.f { color: var(--c-red); }
+.s-wd { font-size: 9px; color: var(--c-text-3); letter-spacing: 0.4px; margin-top: 2px; }
+.s-body { flex: 1; min-width: 0; }
+.s-name { font-size: 12.5px; color: var(--c-text); line-height: 1.4; }
+.s-tag { font-size: 11px; margin-top: 2px; font-weight: 500; }
+.s-tag.k { color: var(--c-yellow-d); }
+.s-tag.p { color: var(--c-green); }
+.s-tag.f { color: var(--c-red); }
+.s-empty { font-size: 12px; color: var(--c-text-3); font-style: italic; padding: 8px 0; }
+
+.reminder-cta {
+    background: var(--c-blue); color: var(--c-white);
+    border-radius: var(--radius);
+    padding: 13px 15px;
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none; font-size: 13px;
+}
+.reminder-cta:hover { background: var(--c-blue-d); color: var(--c-white); }
+.reminder-cta i.bell { color: var(--c-yellow); font-size: 15px; }
+.reminder-cta i.arrow { margin-left: auto; font-size: 12px; opacity: 0.75; }
+
+@media (max-width: 760px) {
+    .cal-layout { grid-template-columns: 1fr; }
+    .cal-cell { min-height: 42px; padding: 3px; font-size: 12px; }
+    .month-title { font-size: 19px; }
+    .month-title select { font-size: 19px; }
+    .month-nav-btn span { display: none; }
+}
+@media (max-width: 480px) {
+    .today-bar { gap: 8px; font-size: 12px; }
+    .today-bar .sep { display: none; }
+}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="container jcal-page">
+
+    <h1 class="jcal-h1">Jain Calendar {{ year }}</h1>
+    <p class="jcal-sub">Tirthankar Kalyanaks · Parv Tithis · Festivals & Vrats</p>
+
+    <div class="today-bar">
+        <span class="lbl">TODAY</span>
+        <span class="val">{{ today_str }} · {{ today_weekday }}</span>
+        <span class="sep">|</span>
+        <span class="stat">Tithi: <strong>{{ today_tithi }}</strong></span>
+        <span class="sep">|</span>
+        <span class="stat"><i class="fas fa-sun icon-sun"></i><strong>{{ today_sunrise }}</strong></span>
+        <span class="stat"><i class="fas fa-moon icon-moon"></i><strong>{{ today_sunset }}</strong></span>
+        {% for ev in today_events %}
+        <span class="today-event-badge tb-{{ ev.type }}">{{ ev.label }}</span>
+        {% endfor %}
+    </div>
+
+    <div class="month-nav">
+        <a class="month-nav-btn" href="{% url 'jain-calendar' %}?year={{ prev_year }}&month={{ prev_month }}">
+            <i class="fas fa-chevron-left"></i> <span>{{ prev_month_name }}</span>
+        </a>
+        <div>
+            <div class="month-title">
+                <form method="get" action="{% url 'jain-calendar' %}" style="display:inline;">
+                    <select name="month" onchange="this.form.submit()">
+                        <option value="1"  {% if month == 1  %}selected{% endif %}>January</option>
+                        <option value="2"  {% if month == 2  %}selected{% endif %}>February</option>
+                        <option value="3"  {% if month == 3  %}selected{% endif %}>March</option>
+                        <option value="4"  {% if month == 4  %}selected{% endif %}>April</option>
+                        <option value="5"  {% if month == 5  %}selected{% endif %}>May</option>
+                        <option value="6"  {% if month == 6  %}selected{% endif %}>June</option>
+                        <option value="7"  {% if month == 7  %}selected{% endif %}>July</option>
+                        <option value="8"  {% if month == 8  %}selected{% endif %}>August</option>
+                        <option value="9"  {% if month == 9  %}selected{% endif %}>September</option>
+                        <option value="10" {% if month == 10 %}selected{% endif %}>October</option>
+                        <option value="11" {% if month == 11 %}selected{% endif %}>November</option>
+                        <option value="12" {% if month == 12 %}selected{% endif %}>December</option>
+                    </select>
+                    <input type="hidden" name="year" value="{{ year }}">
+                </form>
+                {{ year }}
+            </div>
+            <div class="month-counts">
+                <span class="month-count"><span class="dot dot-k"></span> {{ kalyanaks|length }} Kalyanaks</span>
+                <span class="month-count"><span class="dot dot-p"></span> {{ parv_tithis|length }} Parv</span>
+                <span class="month-count"><span class="dot dot-f"></span> {{ festivals|length }} Festivals</span>
+            </div>
+        </div>
+        <a class="month-nav-btn" href="{% url 'jain-calendar' %}?year={{ next_year }}&month={{ next_month }}">
+            <span>{{ next_month_name }}</span> <i class="fas fa-chevron-right"></i>
+        </a>
+    </div>
+
+    <div class="cal-layout">
+        <div class="cal-grid-card">
+            <div class="cal-wd-row">
+                {% for h in weekday_headers %}<div class="cal-wd">{{ h }}</div>{% endfor %}
+            </div>
+            <div class="cal-body">
+                {% for week in calendar_grid %}
+                    {% for cell in week %}
+                    {% if cell.empty %}
+                        <div class="cal-cell cal-empty"></div>
+                    {% else %}
+                        <div class="cal-cell
+                            {% if cell.is_today %}cal-today{% endif %}
+                            {% if cell.has_kalyanak %}has-k{% endif %}
+                            {% if cell.has_parv %}has-p{% endif %}
+                            {% if cell.has_festival %}has-f{% endif %}"
+                            title="{% for e in cell.events %}{{ e.label }}{% if not forloop.last %} · {% endif %}{% endfor %}">
+                            <span class="cal-day-num">{{ cell.day }}</span>
+                            <div class="cal-dots">
+                                {% if cell.has_kalyanak %}<span class="dot dot-k"></span>{% endif %}
+                                {% if cell.has_parv %}<span class="dot dot-p"></span>{% endif %}
+                                {% if cell.has_festival %}<span class="dot dot-f"></span>{% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-head">
+                    <span class="swatch k"></span>
+                    <h3>Kalyanaks</h3>
+                    <span class="count">{{ kalyanaks|length }}</span>
+                </div>
+                {% if kalyanaks %}{% for k in kalyanaks %}
+                <div class="s-item">
+                    <div class="s-date">
+                        <div class="s-day k">{{ k.day }}</div>
+                        <div class="s-wd">{{ k.weekday|slice:":3"|upper }}</div>
+                    </div>
+                    <div class="s-body">
+                        <div class="s-name">{{ k.tirthankar }}</div>
+                        <div class="s-tag k">{{ k.kalyanak_label }}</div>
+                    </div>
+                </div>
+                {% endfor %}{% else %}
+                <div class="s-empty">No Kalyanaks this month</div>
+                {% endif %}
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-head">
+                    <span class="swatch p"></span>
+                    <h3>Parv Tithis</h3>
+                    <span class="count">{{ parv_tithis|length }}</span>
+                </div>
+                {% if parv_tithis %}{% for t in parv_tithis %}
+                <div class="s-item">
+                    <div class="s-date">
+                        <div class="s-day p">{{ t.day }}</div>
+                        <div class="s-wd">{{ t.weekday|slice:":3"|upper }}</div>
+                    </div>
+                    <div class="s-body">
+                        <div class="s-name">{{ t.tithi }}</div>
+                        <div class="s-tag p">{% if t.is_ashtami %}Ashtami{% else %}Chaturdashi{% endif %}</div>
+                    </div>
+                </div>
+                {% endfor %}{% else %}
+                <div class="s-empty">No Parv Tithis this month</div>
+                {% endif %}
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-head">
+                    <span class="swatch f"></span>
+                    <h3>Festivals</h3>
+                    <span class="count">{{ festivals|length }}</span>
+                </div>
+                {% if festivals %}{% for f in festivals %}
+                <div class="s-item">
+                    <div class="s-date">
+                        <div class="s-day f">{{ f.day }}</div>
+                        <div class="s-wd">{{ f.weekday|slice:":3"|upper }}</div>
+                    </div>
+                    <div class="s-body">
+                        <div class="s-name">{{ f.name }}</div>
+                        <div class="s-tag f">{{ f.type|title }}</div>
+                    </div>
+                </div>
+                {% endfor %}{% else %}
+                <div class="s-empty">No festivals this month</div>
+                {% endif %}
+            </div>
+
+            <a href="{% url 'jain-reminders' %}" class="reminder-cta">
+                <i class="fas fa-bell bell"></i>
+                <span>Get WhatsApp reminders</span>
+                <i class="fas fa-arrow-right arrow"></i>
+            </a>
+        </aside>
+    </div>
+</div>
+{% endblock %}
