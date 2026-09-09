@@ -9,6 +9,7 @@ import simplejson as json
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.db.models import Sum
@@ -23,7 +24,7 @@ from django.views.generic.edit import FormView
 from account.models import Account
 
 from mandir.constants import DAILE_MSG, WHATSAPP_MSG
-from mandir.models import Mandir, Record
+from mandir.models import Mandir, Record, Promotion
 from mandir.forms import SearchForm, EntryForm, ContactForm, PaymentForm, BoliRequestForm
 from mandir.utils import (
     send_normal_sms,
@@ -36,8 +37,32 @@ from mandir.utils import (
     send_payment_email
 )
 
+from mandir.jain_calendar_views import (
+    events_on, FESTIVALS_2026, KALYANAKS_2026,
+    format_kalyanak, parse_date
+)
+
 Month_dict = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: "Jun",
               7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'}
+
+
+class CustomLoginView(LoginView):
+    """LoginView extended to pass active promotions to the login template."""
+    template_name = 'login.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from datetime import date as _d
+        _today = _d.today()
+        _mandir = Mandir.objects.filter(status=True, id=1).first()
+        context['promotions'] = Promotion.objects.filter(
+            mandir=_mandir,
+            is_active=True,
+            start_date__lte=_today,
+            end_date__gte=_today,
+        ).order_by('-priority', '-start_date')[:3] if _mandir else []
+        context['mandirs'] = [_mandir] if _mandir else []
+        return context
 
 
 class HomeView(ListView):
@@ -51,6 +76,35 @@ class HomeView(ListView):
         # Mandir object into the context
         if self.request.user.is_authenticated and not self.request.user.is_superuser:
             context['mandir'] = self.request.user.userprofile.mandir
+
+        # Add upcoming Jain Calendar events (next 5)
+        from datetime import date as _date
+        _today = _date.today()
+        _upcoming = []
+        for ds, name, ftype in FESTIVALS_2026:
+            d = parse_date(ds)
+            if d >= _today:
+                _upcoming.append({'date': ds, 'weekday': d.strftime('%A'), 'name': name, 'type': ftype})
+        for ds, tirthankar, types in KALYANAKS_2026:
+            d = parse_date(ds)
+            if d >= _today:
+                _upcoming.append({'date': ds, 'weekday': d.strftime('%A'), 'name': tirthankar + ' — ' + format_kalyanak(types), 'type': 'kalyanak'})
+        _upcoming.sort(key=lambda x: parse_date(x['date']))
+        context['upcoming_events'] = _upcoming[:6]
+        context['today_events'] = events_on(_today)
+
+        # Active promotions for the home page sidebar
+        from datetime import date as _date_cls
+        _today_date = _date_cls.today()
+        # Get mandirs from context (queryset already set by get_queryset)
+        _mandir_qs = self.get_queryset()
+        _mandir_ids = list(_mandir_qs.values_list('id', flat=True))
+        context['promotions'] = Promotion.objects.filter(
+            mandir_id__in=_mandir_ids,
+            is_active=True,
+            start_date__lte=_today_date,
+            end_date__gte=_today_date,
+        ).order_by('-priority', '-start_date')[:3]
 
         return context
 
@@ -122,6 +176,8 @@ class RecordListView(ListView):
         """
         records = self.model.objects.filter(mandir=mandir).only('boli_date', 'paid').order_by('boli_date')
         month_data = [[str('Month'), str('Paid'), str('Not Paid')]]
+        if not records.exists():
+            return month_data, ''
         first_month = str(Month_dict.get(records[0].boli_date.month))
 
         for k, g in groupby(records, key=lambda i: i.boli_date.month):
@@ -305,8 +361,21 @@ def contact(request):
             form_class = form
             messages.error(request, "Please provide correct email address !!")
 
-    mandir = request.user.userprofile.mandir if request.user.is_authenticated else None
-    return render(request, 'contact.html', {'form': form_class, 'mandir': mandir})
+    mandir = request.user.userprofile.mandir if request.user.is_authenticated else Mandir.objects.filter(status=True, id=1).first()
+    from datetime import date as _d
+    _today = _d.today()
+    _promotions = Promotion.objects.filter(
+        mandir=mandir,
+        is_active=True,
+        start_date__lte=_today,
+        end_date__gte=_today,
+    ).order_by('-priority', '-start_date')[:3] if mandir else []
+    return render(request, 'contact.html', {
+        'form': form_class,
+        'mandir': mandir,
+        'mandirs': [mandir] if mandir else [],
+        'promotions': _promotions,
+    })
 
 
 def get_all_records(phone_number, record_ids=None):
@@ -440,6 +509,16 @@ class AboutView(TemplateView):
         if self.request.user.is_authenticated:
             mandir = self.request.user.userprofile.mandir
         context.update({'mandir': mandir, 'mandirs': [mandir]})
+
+        # Active promotions for the sidebar
+        from datetime import date as _d
+        _today = _d.today()
+        context['promotions'] = Promotion.objects.filter(
+            mandir=mandir,
+            is_active=True,
+            start_date__lte=_today,
+            end_date__gte=_today,
+        ).order_by('-priority', '-start_date')[:3]
         return context
 
 

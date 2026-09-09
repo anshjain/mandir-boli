@@ -12,7 +12,7 @@ from django.contrib import admin
 
 from account.models import Account
 from mandir.constants import SPECIAL_MSG, VIDHAN_CON
-from mandir.models import Mandir, Record, MandirImage, BoliChoice, VratDetail
+from mandir.models import Mandir, Record, MandirImage, BoliChoice, VratDetail, Promotion
 from mandir.utils import send_normal_sms
 
 
@@ -208,8 +208,54 @@ class VratDetailAdmin(ImportExportModelAdmin):
     resource_class = VratDetailResource
 
 
+
+class PromotionAdmin(admin.ModelAdmin):
+    list_display  = ('image_preview', 'title', 'promo_type', 'get_mandir', 'start_date', 'end_date', 'priority', 'is_active')
+    list_filter   = ('is_active', 'promo_type', 'mandir')
+    list_editable = ('is_active', 'priority')
+    search_fields = ('title', 'body')
+    ordering      = ('-priority', '-start_date')
+    fieldsets = (
+        (None, {
+            'fields': ('mandir', 'promo_type', 'title', 'body', 'image')
+        }),
+        ('Call to Action', {
+            'fields': ('cta_label', 'cta_url'),
+            'description': 'Optional button shown at the bottom of the card.'
+        }),
+        ('Schedule & Display', {
+            'fields': ('start_date', 'end_date', 'priority', 'is_active')
+        }),
+    )
+
+    def get_mandir(self, obj):
+        return obj.mandir.name
+    get_mandir.short_description = 'Mandir'
+
+    def image_preview(self, obj):
+        if obj.image:
+            return '<img src="{}" style="height:48px;border-radius:4px;object-fit:cover;">'.format(
+                obj.image.url
+            )
+        return '—'
+    image_preview.allow_tags = True
+    image_preview.short_description = 'Preview'
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(mandir=request.user.userprofile.mandir)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'mandir' and not request.user.is_superuser:
+            kwargs['queryset'] = Mandir.objects.filter(id=request.user.userprofile.mandir.id)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
 admin.site.register(Mandir, MandirAdmin)
 admin.site.register(Record, RecordAdmin)
 admin.site.register(MandirImage, MandirImageAdmin)
 admin.site.register(BoliChoice, BoliChoiceAdmin)
 admin.site.register(VratDetail, VratDetailAdmin)
+admin.site.register(Promotion, PromotionAdmin)

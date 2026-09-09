@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Reminders — Jain Calendar{% endblock %}
+
+{% block extra_css %}
+<style>
+.rem-page { padding: 24px 0 48px; }
+.page-header { margin-bottom: 24px; }
+.page-header h1 { font-family: var(--font-head); font-size: 26px; font-weight: 700; color: var(--c-text); margin-bottom: 4px; }
+.page-header p { font-size: 13px; color: var(--c-text-3); }
+.bcnav { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--c-text-3); margin-bottom: 20px; flex-wrap: wrap; }
+.bcnav a { color: var(--c-red); }
+.bcnav a:hover { color: var(--c-yellow); }
+.bcnav-tabs { display: flex; gap: 4px; flex-wrap: wrap; padding: 12px 0 0; border-top: 1px solid var(--c-border); margin-top: 8px; }
+.bcnav-tab { padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--c-text-2); text-decoration: none; border: 1px solid var(--c-border); background: var(--c-surface); transition: all .15s; }
+.bcnav-tab:hover { border-color: var(--c-red); color: var(--c-red); }
+.bcnav-tab.active { background: var(--c-red); color: #fff; border-color: var(--c-red); }
+
+.rem-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+
+/* Subscription toggles */
+.subs-card { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
+.subs-head { padding: 14px 18px; border-bottom: 1px solid var(--c-border); }
+.subs-head h2 { font-family: var(--font-head); font-size: 17px; font-weight: 700; }
+.subs-head p { font-size: 12px; color: var(--c-text-3); margin-top: 3px; }
+.subs-body { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+
+.sub-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: var(--radius);
+    border: 1.5px solid var(--c-border);
+    cursor: pointer; transition: border-color .15s, background .15s;
+    background: var(--c-bg);
+}
+.sub-row:hover { border-color: var(--c-red); background: #fdf6f0; }
+.sub-row.checked { border-color: var(--c-red); background: #fdf6f0; }
+.sub-row input[type=checkbox] { display: none; }
+.sub-icon { font-size: 20px; flex-shrink: 0; line-height: 1; }
+.sub-text { flex: 1; }
+.sub-title { font-size: 14px; font-weight: 600; color: var(--c-text); margin-bottom: 2px; }
+.sub-desc { font-size: 12px; color: var(--c-text-3); }
+.sub-check {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--c-red); color: #fff;
+    font-size: 11px; display: none;
+    align-items: center; justify-content: center; flex-shrink: 0;
+}
+.sub-row.checked .sub-check { display: flex; }
+
+.subs-actions { padding: 14px 16px; border-top: 1px solid var(--c-border); display: flex; flex-direction: column; gap: 8px; }
+.notif-status { font-size: 12px; color: var(--c-text-3); }
+
+/* Alerts list */
+.alerts-card { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
+.alerts-head { padding: 14px 18px; border-bottom: 1px solid var(--c-border); display: flex; align-items: center; justify-content: space-between; }
+.alerts-head h2 { font-family: var(--font-head); font-size: 17px; font-weight: 700; }
+.alerts-head span { font-size: 12px; color: var(--c-text-3); }
+.alerts-list { max-height: 480px; overflow-y: auto; }
+.alert-row {
+    display: flex; gap: 12px; padding: 11px 16px;
+    border-bottom: 1px solid #f5f0ea; align-items: center;
+}
+.alert-row:last-child { border-bottom: none; }
+.alert-row:hover { background: var(--c-bg); }
+.alert-date { display: flex; flex-direction: column; align-items: center; min-width: 32px; }
+.alert-day { font-family: var(--font-head); font-size: 20px; font-weight: 700; line-height: 1; color: var(--c-text); }
+.alert-mon { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--c-text-3); }
+.alert-body { flex: 1; min-width: 0; }
+.alert-name { font-size: 13px; font-weight: 600; color: var(--c-text); margin-bottom: 3px; line-height: 1.3; }
+.alert-meta { display: flex; align-items: center; gap: 6px; }
+.alert-wd { font-size: 11px; color: var(--c-text-3); }
+.alert-tag { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+.tag-ashtami     { background: #dcfce7; color: #15803d; }
+.tag-chaturdashi { background: #dbeafe; color: #1e40af; }
+.tag-kalyanak    { background: var(--c-yellow-l); color: var(--c-yellow-d); }
+.tag-festival    { background: #fee2e2; color: #b91c1c; }
+.alerts-empty { padding: 24px 16px; text-align: center; font-size: 13px; color: var(--c-text-3); font-style: italic; }
+
+/* How-to */
+.howto { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius-lg); padding: 16px 18px; box-shadow: var(--shadow); }
+.howto h3 { font-family: var(--font-head); font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+.howto-step { display: flex; gap: 10px; margin-bottom: 10px; font-size: 13px; color: var(--c-text-2); line-height: 1.5; }
+.howto-step:last-child { margin-bottom: 0; }
+.step-num { width: 22px; height: 22px; border-radius: 50%; background: var(--c-red); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; flex-shrink: 0; margin-top: 1px; }
+
+@media (max-width: 700px) {
+    .rem-layout { grid-template-columns: 1fr; }
+    .alerts-list { max-height: 300px; }
+}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="container rem-page">
+    <div class="page-header">
+        <div class="bcnav">
+            <a href="{% url 'home' %}">Home</a>
+            <span>›</span>
+            <a href="{% url 'jain-calendar' %}">Jain Calendar</a>
+            <span>›</span>
+            <span>Reminders</span>
+        </div>
+        <h1>Reminders</h1>
+        <p>Subscribe to observances — get notified on matching days</p>
+        <div class="bcnav-tabs">
+            <a href="{% url 'jain-calendar' %}" class="bcnav-tab">Calendar</a>
+            <a href="{% url 'jain-reminders' %}" class="bcnav-tab active">Reminders</a>
+            <a href="{% url 'jain-search' %}" class="bcnav-tab">Search</a>
+        </div>
+    </div>
+
+    <div class="rem-layout">
+        <!-- Left: subscriptions -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="subs-card">
+                <div class="subs-head">
+                    <h2>Subscription Categories</h2>
+                    <p>{{ active_count }} active · {{ alerts_count }} upcoming alerts</p>
+                </div>
+                <form action="{% url 'jain-save-reminders' %}" method="post">
+                    {% csrf_token %}
+                    <div class="subs-body">
+                        <label class="sub-row {% if subscriptions.ashtami %}checked{% endif %}">
+                            <input type="checkbox" name="ashtami" {% if subscriptions.ashtami %}checked{% endif %}>
+                            <span class="sub-icon">🪔</span>
+                            <span class="sub-text">
+                                <span class="sub-title">All Ashtami</span>
+                                <span class="sub-desc">Krishna & Shukla Ashtami every month</span>
+                            </span>
+                            <span class="sub-check">✓</span>
+                        </label>
+                        <label class="sub-row {% if subscriptions.chaturdashi %}checked{% endif %}">
+                            <input type="checkbox" name="chaturdashi" {% if subscriptions.chaturdashi %}checked{% endif %}>
+                            <span class="sub-icon">🌙</span>
+                            <span class="sub-text">
+                                <span class="sub-title">All Chaturdashi</span>
+                                <span class="sub-desc">Krishna & Shukla Chaturdashi every month</span>
+                            </span>
+                            <span class="sub-check">✓</span>
+                        </label>
+                        <label class="sub-row {% if subscriptions.kalyanak %}checked{% endif %}">
+                            <input type="checkbox" name="kalyanak" {% if subscriptions.kalyanak %}checked{% endif %}>
+                            <span class="sub-icon">🕉</span>
+                            <span class="sub-text">
+                                <span class="sub-title">Tirthankar Kalyanaks</span>
+                                <span class="sub-desc">Garbh, Janma, Tap, Gyan & Moksha events</span>
+                            </span>
+                            <span class="sub-check">✓</span>
+                        </label>
+                        <label class="sub-row {% if subscriptions.festival %}checked{% endif %}">
+                            <input type="checkbox" name="festival" {% if subscriptions.festival %}checked{% endif %}>
+                            <span class="sub-icon">🎉</span>
+                            <span class="sub-text">
+                                <span class="sub-title">Festivals & Vrats</span>
+                                <span class="sub-desc">Paryushan, Mahavir Jayanti, Diwali & more</span>
+                            </span>
+                            <span class="sub-check">✓</span>
+                        </label>
+                    </div>
+                    <div class="subs-actions">
+                        <button class="btn btn-primary btn-block" type="submit">Save Preferences</button>
+                        <button id="enable-notif" type="button" class="btn btn-ghost btn-block">
+                            <i class="fas fa-bell"></i> Enable Browser Notifications
+                        </button>
+                        <span class="notif-status" id="notif-status"></span>
+                    </div>
+                </form>
+            </div>
+
+            <div class="howto">
+                <h3>How it works</h3>
+                <div class="howto-step"><span class="step-num">1</span><span>Pick one or more categories above and save.</span></div>
+                <div class="howto-step"><span class="step-num">2</span><span>Click <strong>Enable Browser Notifications</strong> once.</span></div>
+                <div class="howto-step"><span class="step-num">3</span><span>Open the app on any matching day — you'll see a notification and a banner on the page.</span></div>
+            </div>
+        </div>
+
+        <!-- Right: upcoming alerts -->
+        <div class="alerts-card">
+            <div class="alerts-head">
+                <h2>Upcoming Alerts</h2>
+                <span>{{ alerts_count }} event{{ alerts_count|pluralize }}</span>
+            </div>
+            {% if alerts %}
+            <div class="alerts-list">
+                {% for a in alerts %}
+                <div class="alert-row">
+                    <div class="alert-date">
+                        <span class="alert-day">{{ a.day }}</span>
+                        <span class="alert-mon">{% if a.month == 1 %}Jan{% elif a.month == 2 %}Feb{% elif a.month == 3 %}Mar{% elif a.month == 4 %}Apr{% elif a.month == 5 %}May{% elif a.month == 6 %}Jun{% elif a.month == 7 %}Jul{% elif a.month == 8 %}Aug{% elif a.month == 9 %}Sep{% elif a.month == 10 %}Oct{% elif a.month == 11 %}Nov{% else %}Dec{% endif %}</span>
+                    </div>
+                    <div class="alert-body">
+                        <div class="alert-name">{{ a.label }}</div>
+                        <div class="alert-meta">
+                            <span class="alert-wd">{{ a.weekday|slice:":3" }}</span>
+                            <span class="alert-tag tag-{{ a.category }}">{{ a.category|title }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alerts-empty">No alerts yet. Enable a category on the left to see upcoming events here.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function(){
+    var btn = document.getElementById('enable-notif');
+    var status = document.getElementById('notif-status');
+    if (!btn) return;
+    if (!('Notification' in window)) { btn.disabled = true; status.textContent = 'Not supported in this browser.'; return; }
+    if (Notification.permission === 'granted') status.textContent = 'Notifications are enabled.';
+    else if (Notification.permission === 'denied') status.textContent = 'Blocked — enable in browser settings.';
+    btn.addEventListener('click', function() {
+        Notification.requestPermission().then(function(p) {
+            if (p === 'granted') {
+                status.textContent = 'Enabled!';
+                try { new Notification('Jai Jinendra 🙏', { body: 'You\'ll now get alerts on subscribed days.' }); } catch(e){}
+            } else { status.textContent = 'Permission: ' + p; }
+        });
+    });
+    document.querySelectorAll('.sub-row').forEach(function(row) {
+        var cb = row.querySelector('input[type=checkbox]');
+        cb.addEventListener('change', function() { row.classList.toggle('checked', cb.checked); });
+    });
+})();
+</script>
+{% endblock %}

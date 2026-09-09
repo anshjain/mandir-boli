@@ -1,41 +1,190 @@
 {% extends "base.html" %}
-
 {% load static i18n %}
-
 {% block title %}{% trans "About Us" %}{% endblock %}
 
+{% block extra_css %}
+<style>
+.about-page { padding: 28px 0 60px; }
+
+/* Two-column layout: content + promotions */
+.about-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 24px;
+    align-items: start;
+}
+
+/* Left column */
+.about-hero { text-align: center; margin-bottom: 24px; }
+.about-hero .jain-sym { font-size: 44px; display: block; margin-bottom: 8px; line-height: 1; }
+.about-hero h1 { font-family: var(--font-head); font-size: 30px; font-weight: 700; color: var(--c-text); margin-bottom: 4px; }
+.about-hero p { font-size: 13px; color: var(--c-text-3); }
+
+.about-section { margin-bottom: 0; }
+.about-section h2 {
+    font-family: var(--font-head); font-size: 18px; font-weight: 700;
+    color: var(--c-text); margin-bottom: 10px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--c-border);
+}
+.about-section p { font-size: 14px; color: var(--c-text-2); line-height: 1.75; margin-bottom: 10px; }
+.about-section p:last-child { margin-bottom: 0; }
+em.hl { color: var(--c-red, #9b1b1b); font-style: normal; font-weight: 600; }
+
+/* Right column — promotions */
+.about-promo-col { display: flex; flex-direction: column; gap: 12px; }
+.about-promo-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--c-text-3);
+    margin-bottom: 2px;
+}
+
+/* Promo card styles (same as home/calendar) */
+.promo-card { background: var(--c-surface); border: 0.5px solid var(--c-border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
+.promo-card-img-wrap { width: 100%; background: #0a0a0a; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; position: relative; }
+.promo-card-img-wrap img { width: 100%; max-height: 280px; object-fit: contain; display: block; transition: transform .2s ease; }
+.promo-card-img-wrap:hover img { transform: scale(1.02); }
+.promo-img-hint { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,.55); color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px; pointer-events: none; }
+.promo-lightbox { display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,.92); align-items: center; justify-content: center; padding: 16px; cursor: zoom-out; }
+.promo-lightbox.open { display: flex; }
+.promo-lightbox img { max-width: 100%; max-height: 92vh; object-fit: contain; border-radius: 6px; cursor: default; }
+.promo-lightbox-close { position: absolute; top: 14px; right: 18px; background: rgba(255,255,255,.15); border: none; color: #fff; font-size: 22px; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; }
+.promo-lightbox-close:hover { background: rgba(255,255,255,.28); }
+.promo-body { padding: 12px 14px 13px; }
+.promo-type-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 5px; font-size: 10px; font-weight: 700; letter-spacing: .4px; margin-bottom: 7px; }
+.pb-notice   { background: #dbeafe; color: #1e40af; }
+.pb-event    { background: #fef3c7; color: #b45309; }
+.pb-donation { background: #fee2e2; color: #b91c1c; }
+.pb-festival { background: #d1fae5; color: #047857; }
+.pb-other    { background: #f3f4f6; color: #374151; }
+.promo-title { font-family: var(--font-head); font-size: 14px; font-weight: 700; color: var(--c-text); margin-bottom: 6px; line-height: 1.3; }
+.promo-body-text { font-size: 12px; color: var(--c-text-2); line-height: 1.6; white-space: pre-line; }
+.promo-body-text.collapsed { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.promo-read-more { background: none; border: none; cursor: pointer; color: var(--c-green); font-size: 11px; font-weight: 600; padding: 4px 0 6px; display: block; }
+.promo-actions { display: flex; gap: 8px; margin-top: 8px; }
+.promo-cta { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 6px; background: var(--c-green); color: var(--c-white); font-size: 12px; font-weight: 600; text-decoration: none; flex: 1; justify-content: center; border: none; cursor: pointer; font-family: inherit; }
+.promo-cta:hover { opacity: .85; color: var(--c-white); }
+.promo-cta-wa { background: #22c55e; }
+.promo-empty { background: var(--c-surface); border: 0.5px dashed var(--c-border); border-radius: var(--radius-lg); padding: 18px; text-align: center; font-size: 13px; color: var(--c-text-3); }
+
+@media (max-width: 768px) {
+    .about-layout { grid-template-columns: 1fr; }
+    .about-promo-col { order: -1; } /* Show promotions above content on mobile */
+}
+</style>
+{% endblock %}
+
 {% block main %}
-    <!-- The about us Section -->
-    <div class="w3-container w3-content w3-center w3-padding-64" style="max-width:800px" id="about-us">
-        <h2 class="w3-wide">ABOUT US</h2>
-        <p class="w3-opacity"><i>Jai Jinendra</i></p>
-        <p class="w3-justify">
-            PunyaUday fund is establish by <i>{{mandir.name}}</i> on the day of 50th <i> achrya Shree  Vidyasagar </i> Maharaj Diksha divas (i.e. <u>30th June 2018</u>) at sus gaon pune. <br/>
-            The main motto behind this website is to keep track of funds, which temple is going to receive in future and provide a convenient way for end user to monitor and view the fund status.
-            This will be the convenient way to raise funds for temple and help to avoid negligence of funds.
-        </p>
-        <p class="w3-opacity" style="float: left; color: darkgreen;"><b><i>How it work :</i></b></p><br />
-        <p class="w3-justify">
-            User can search his unpaid donation information by using registered <i>"phone number"</i>, it will list down all donation information which are not paid yet.
-            corresponding to registered temples. <br />
-            Once the list is fetched user can select the checkbox against it and send a message using send link against the row,
-            Please do mention the mode of payment (i.e. <b style="color:blue"><i>Online</i></b> or <b style="color:blue"><i>Cash</i></b>) and amount, If you paid online then please do mention <b style="color:blue"><i>transaction ID</i></b> as well,
-            this will help admin to track you information and avoid discrepancy.
-        </p>
-        <div class="w3-row w3-padding-32">
-            <p class="w3-opacity"><b><i>Founder Members</i></b></p>
-            <div class="w3-third">
-                <p>Priya Jain</p>
-                <img src="{% static '/images/author/priya-jain.jpg' %}" class="w3-round w3-margin-bottom" alt="Priya Jain" style="width:60%">
-            </div>
-            <div class="w3-third">
-                <p>Sankul Jain</p>
-                <img src="{% static '/images/author/sankul.JPG' %}" class="w3-round w3-margin-bottom" alt="Sankul Jain" style="width:60%">
-            </div>
-            <div class="w3-third">
-                <p>Shreeyansh Jain</p>
-                <img src="{% static '/images/author/shreeyansh-jain.jpg' %}" class="w3-round" alt="Shreeyansh Jain" style="width:60%">
+<div class="container">
+<div class="about-page" id="about-us">
+
+    <div class="about-hero">
+        <span class="jain-sym">ꣽ</span>
+        <h1>About Us</h1>
+    </div>
+
+    <div class="about-layout">
+
+        <!-- Left: About content -->
+        <div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="about-section" style="margin-bottom:20px;">
+                        <h2>Our Story</h2>
+                        <p>PunyaUday fund was established by <em class="hl">{{ mandir.name }}</em> on the day of the 50th <em class="hl">Acharya Shree Vidyasagar</em> Maharaj Diksha Divas (30th June 2018) at Sus Gaon, Pune.</p>
+                        <p>The main purpose of this platform is to track funds the temple will receive in future, and to give devotees a convenient way to monitor their donations — avoiding any negligence of funds.</p>
+                    </div>
+                    <div class="about-section">
+                        <h2>How It Works</h2>
+                        <p>Search your pending donations using your registered <em class="hl">phone number</em>. All unpaid records will be listed for you.</p>
+                        <p>Once fetched, select a record and use the WhatsApp or SMS link to notify the admin. Please mention the mode of payment (<strong>Online</strong> or <strong>Cash</strong>) and if online, the <strong>Transaction ID</strong> to help avoid discrepancies.</p>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- Right: Promotions -->
+        <div class="about-promo-col">
+            <div class="about-promo-label">Notice Board</div>
+
+            {% if promotions %}
+                {% for promo in promotions %}
+                <div class="promo-card">
+                    {% if promo.image %}
+                    <div class="promo-card-img-wrap"
+                         onclick="openLightbox('ab-lb-{{ forloop.counter }}')"
+                         title="Click to view full image">
+                        <img src="{{ promo.image.url }}" alt="{{ promo.title }}">
+                        <span class="promo-img-hint">
+                            <i class="fas fa-expand-alt" style="font-size:9px;"></i> View full
+                        </span>
+                    </div>
+                    <div class="promo-lightbox" id="ab-lb-{{ forloop.counter }}"
+                         onclick="closeLightbox('ab-lb-{{ forloop.counter }}')">
+                        <button class="promo-lightbox-close"
+                                onclick="closeLightbox('ab-lb-{{ forloop.counter }}');event.stopPropagation();">×</button>
+                        <img src="{{ promo.image.url }}" alt="{{ promo.title }}"
+                             onclick="event.stopPropagation();">
+                    </div>
+                    {% endif %}
+                    <div class="promo-body">
+                        <span class="promo-type-badge pb-{{ promo.promo_type }}">
+                            {% if promo.promo_type == 'notice' %}📢 Notice
+                            {% elif promo.promo_type == 'event' %}📅 Event
+                            {% elif promo.promo_type == 'donation' %}🙏 Donation
+                            {% elif promo.promo_type == 'festival' %}🎉 Festival
+                            {% else %}ℹ️ Info{% endif %}
+                        </span>
+                        <div class="promo-title">{{ promo.title }}</div>
+                        <div class="promo-body-text collapsed" id="ab-promo-{{ forloop.counter }}">{{ promo.body }}</div>
+                        <button class="promo-read-more"
+                                onclick="togglePromo('ab-promo-{{ forloop.counter }}', this)">Read more ▾</button>
+                        <div class="promo-actions">
+                            <button class="promo-cta promo-cta-wa"
+                                    onclick="sharePromo(this)"
+                                    data-title="{{ promo.title|escapejs }}"
+                                    data-body="{{ promo.body|escapejs }}"
+                                    {% if promo.image %}data-image="{{ promo.image.url }}"{% endif %}>
+                                <i class="fas fa-share-alt"></i>
+                                {% if promo.cta_label %}{{ promo.cta_label }}{% else %}Share Now{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="promo-empty">No notices at the moment.</div>
+            {% endif %}
+        </div>
+
     </div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+function togglePromo(id, btn) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var collapsed = el.classList.contains('collapsed');
+    el.classList.toggle('collapsed', !collapsed);
+    btn.textContent = collapsed ? 'Show less ▴' : 'Read more ▾';
+}
+function openLightbox(id) {
+    var lb = document.getElementById(id);
+    if (lb) { lb.classList.add('open'); document.body.style.overflow = 'hidden'; }
+}
+function closeLightbox(id) {
+    var lb = document.getElementById(id);
+    if (lb) { lb.classList.remove('open'); document.body.style.overflow = ''; }
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.promo-lightbox.open').forEach(function(lb) {
+            lb.classList.remove('open'); document.body.style.overflow = '';
+        });
+    }
+});
+</script>
 {% endblock %}
