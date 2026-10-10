@@ -145,3 +145,72 @@ if (pNum) {
         }
     });
 }
+
+/* ── Promo share ─────────────────────────────────────────────── */
+function sharePromo(btn) {
+    // Read title and body from data attributes.
+    // Body is stored as raw text in a companion <span data-body-raw> element
+    // to avoid |escapejs unicode escaping issues.
+    var title    = btn.getAttribute('data-title') || '';
+    var bodyEl   = document.getElementById(btn.getAttribute('data-body-id'));
+    var body     = bodyEl ? bodyEl.textContent : (btn.getAttribute('data-body') || '');
+    var img      = btn.getAttribute('data-image') || '';
+    var fullText = title + '\n\n' + body;
+
+    if (navigator.share) {
+        var shareData = { title: title, text: fullText };
+        if (img) {
+            fetch(img)
+                .then(function(r) { return r.blob(); })
+                .then(function(blob) {
+                    var ext  = img.split('.').pop().split('?')[0].toLowerCase();
+                    var mime = ext === 'png' ? 'image/png' : 'image/jpeg';
+                    var file = new File([blob], 'notice.' + ext, { type: mime });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        return navigator.share({ title: title, text: fullText, files: [file] });
+                    }
+                    return navigator.share(shareData);
+                })
+                .catch(function() { return navigator.share(shareData); });
+        } else {
+            navigator.share(shareData).catch(function() {});
+        }
+        return;
+    }
+    // Desktop fallback — WhatsApp web with full text
+    window.open('https://wa.me/?text=' + encodeURIComponent(fullText), '_blank');
+}
+
+/* ── Promo read-more toggle ── */
+function togglePromo(idx, btn) {
+    var el = document.getElementById('promo-text-' + idx);
+    if (!el) return;
+    var collapsed = el.classList.contains('collapsed');
+    el.classList.toggle('collapsed', !collapsed);
+    btn.textContent = collapsed ? 'Show less ▴' : 'Read more ▾';
+}
+
+/* ── Promo image lightbox ── */
+function openLightbox(id) {
+    var lb = document.getElementById(id);
+    if (lb) {
+        lb.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+}
+function closeLightbox(id) {
+    var lb = document.getElementById(id);
+    if (lb) {
+        lb.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+}
+/* Close lightbox on Escape key */
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.promo-lightbox.open').forEach(function(lb) {
+            lb.classList.remove('open');
+            document.body.style.overflow = '';
+        });
+    }
+});

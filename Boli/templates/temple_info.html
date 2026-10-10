@@ -554,13 +554,16 @@
                             <div class="promo-actions">
                                 <button class="promo-cta promo-cta-wa"
                                         onclick="sharePromo(this)"
-                                        data-title="{{ promo.title|escapejs }}"
-                                        data-body="{{ promo.body|escapejs }}"
+                                        data-title="{{ promo.title }}"
+                                        data-body-id="{{ 'home-body-'|add:forloop.counter }}"
                                         {% if promo.image %}data-image="{{ promo.image.url }}"{% endif %}>
                                     <i class="fas fa-share-alt"></i>
                                     {% if promo.cta_label %}{{ promo.cta_label }}{% else %}Share Now{% endif %}
                                 </button>
                             </div>
+                            {# Hidden raw body text — avoids escapejs unicode encoding #}
+                            <span id="{{ 'home-body-'|add:forloop.counter }}"
+                                  style="display:none;">{{ promo.body }}</span>
                         </div>
                     </div>
                     {% endfor %}
@@ -606,94 +609,30 @@
 {% block extra_js %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script>
-/* ── Promo share ── */
-function sharePromo(btn) {
-    var title    = btn.getAttribute('data-title') || '';
-    var body     = btn.getAttribute('data-body')  || '';
-    var img      = btn.getAttribute('data-image') || '';
-    var fullText = title + '\n\n' + body;
+	document.querySelectorAll('.tab').forEach(function(t){
+		t.addEventListener('click', function(){
+			var card = t.closest('.mandir-card-body');
+			card.querySelectorAll('.tab').forEach(function(x){ x.classList.remove('active'); });
+			card.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+			t.classList.add('active');
+			var panel = document.getElementById(t.dataset.tab);
+			if (panel) panel.classList.add('active');
+		});
+	});
 
-    if (navigator.share) {
-        var shareData = { title: title, text: fullText };
-        if (img) {
-            fetch(img)
-                .then(function(r) { return r.blob(); })
-                .then(function(blob) {
-                    var ext  = img.split('.').pop().split('?')[0].toLowerCase();
-                    var mime = ext === 'png' ? 'image/png' : 'image/jpeg';
-                    var file = new File([blob], 'notice.' + ext, { type: mime });
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        return navigator.share({ title: title, text: fullText, files: [file] });
-                    }
-                    return navigator.share(shareData);
-                })
-                .catch(function() { return navigator.share(shareData); });
-        } else {
-            navigator.share(shareData).catch(function() {});
-        }
-        return;
-    }
-    window.open('https://wa.me/?text=' + encodeURIComponent(fullText), '_blank');
-}
-
-/* ── Promo read-more toggle ── */
-function togglePromo(idx, btn) {
-    var el = document.getElementById('promo-text-' + idx);
-    if (!el) return;
-    var collapsed = el.classList.contains('collapsed');
-    el.classList.toggle('collapsed', !collapsed);
-    btn.textContent = collapsed ? 'Show less ▴' : 'Read more ▾';
-}
-
-/* ── Promo image lightbox ── */
-function openLightbox(id) {
-    var lb = document.getElementById(id);
-    if (lb) {
-        lb.classList.add('open');
-        document.body.style.overflow = 'hidden';
-    }
-}
-function closeLightbox(id) {
-    var lb = document.getElementById(id);
-    if (lb) {
-        lb.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-}
-/* Close lightbox on Escape key */
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        document.querySelectorAll('.promo-lightbox.open').forEach(function(lb) {
-            lb.classList.remove('open');
-            document.body.style.overflow = '';
-        });
-    }
-});
-
-document.querySelectorAll('.tab').forEach(function(t){
-    t.addEventListener('click', function(){
-        var card = t.closest('.mandir-card-body');
-        card.querySelectorAll('.tab').forEach(function(x){ x.classList.remove('active'); });
-        card.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
-        t.classList.add('active');
-        var panel = document.getElementById(t.dataset.tab);
-        if (panel) panel.classList.add('active');
-    });
-});
-
-var reqURL = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent("https://www.youtube.com/feeds/videos.xml?channel_id=");
-function loadVideo(iframe) {
-    var vnum = parseInt(iframe.getAttribute('vnum') || '0');
-    var cid = iframe.getAttribute('cid');
-    var titleEl = document.getElementById('vt' + vnum);
-    $.getJSON(reqURL + cid, function(data) {
-        var item = data.items[vnum];
-        if (!item) return;
-        var id = item.link.substr(item.link.indexOf('=') + 1);
-        iframe.setAttribute('src', 'https://youtube.com/embed/' + id + '?controls=0');
-        if (titleEl) titleEl.textContent = item.title;
-    });
-}
-document.querySelectorAll('.latestVideoEmbed').forEach(function(f){ loadVideo(f); });
+	var reqURL = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent("https://www.youtube.com/feeds/videos.xml?channel_id=");
+	function loadVideo(iframe) {
+		var vnum = parseInt(iframe.getAttribute('vnum') || '0');
+		var cid = iframe.getAttribute('cid');
+		var titleEl = document.getElementById('vt' + vnum);
+		$.getJSON(reqURL + cid, function(data) {
+			var item = data.items[vnum];
+			if (!item) return;
+			var id = item.link.substr(item.link.indexOf('=') + 1);
+			iframe.setAttribute('src', 'https://youtube.com/embed/' + id + '?controls=0');
+			if (titleEl) titleEl.textContent = item.title;
+		});
+	}
+	document.querySelectorAll('.latestVideoEmbed').forEach(function(f){ loadVideo(f); });
 </script>
 {% endblock %}

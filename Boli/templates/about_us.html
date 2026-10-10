@@ -80,6 +80,7 @@ em.hl { color: var(--c-red, #9b1b1b); font-style: normal; font-weight: 600; }
     <div class="about-hero">
         <span class="jain-sym">ꣽ</span>
         <h1>About Us</h1>
+		<p>Jai Jinendra</p>
     </div>
 
     <div class="about-layout">
@@ -141,13 +142,15 @@ em.hl { color: var(--c-red, #9b1b1b); font-style: normal; font-weight: 600; }
                         <div class="promo-actions">
                             <button class="promo-cta promo-cta-wa"
                                     onclick="sharePromo(this)"
-                                    data-title="{{ promo.title|escapejs }}"
-                                    data-body="{{ promo.body|escapejs }}"
+                                    data-title="{{ promo.title }}"
+                                    data-body-id="{{ 'ab-body-'|add:forloop.counter }}"
                                     {% if promo.image %}data-image="{{ promo.image.url }}"{% endif %}>
                                 <i class="fas fa-share-alt"></i>
                                 {% if promo.cta_label %}{{ promo.cta_label }}{% else %}Share Now{% endif %}
                             </button>
                         </div>
+                        {# Hidden raw body — avoids unicode encoding #}
+                        <span id="{{ 'ab-body-'|add:forloop.counter }}" style="display:none;">{{ promo.body }}</span>
                     </div>
                 </div>
                 {% endfor %}
