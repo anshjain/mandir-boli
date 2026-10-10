@@ -1,74 +1,69 @@
 {% extends "base.html" %}
-
 {% load static i18n %}
-
-{% block title %}{% trans "About Us" %}{% endblock %}
+{% block title %}{% trans "Contact Us" %}{% endblock %}
 
 {% block extra_css %}
-    <link href = "https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel = "stylesheet">
-    <style>
-        .js-captcha-refresh {
-            box-sizing: inherit;
-            border: blue solid;
-            border-radius: 5px;
-            padding: 5px;
-        }
-    </style>
+<style>
+.contact-page { padding: 28px 0 60px; }
+.contact-layout { display: grid; grid-template-columns: 260px 1fr; gap: 20px; align-items: start; }
+.contact-info { background: var(--c-red); color: #fff; border-radius: var(--radius-lg); padding: 24px 20px; }
+.contact-info h2 { font-family: var(--font-head); font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+.contact-info p { font-size: 13px; opacity: .8; margin-bottom: 20px; }
+.c-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 14px; }
+.c-row:last-child { margin-bottom: 0; }
+.c-icon { width: 32px; height: 32px; border-radius: 6px; background: rgba(255,255,255,.15); display: grid; place-items: center; font-size: 13px; flex-shrink: 0; }
+.page-hd { margin-bottom: 20px; }
+.page-hd h1 { font-family: var(--font-head); font-size: 22px; font-weight: 700; margin-bottom: 3px; }
+.page-hd p { font-size: 13px; color: var(--c-text-3); }
+@media (max-width: 640px) { .contact-layout { grid-template-columns: 1fr; } }
+</style>
 {% endblock %}
 
 {% block main %}
-
-<!-- The about us Section -->
-  <div class="w3-container w3-content w3-padding-64" style="max-width:800px" id="contact">
-    <h2 class="w3-wide w3-center">CONTACT</h2>
-    <p class="w3-opacity w3-center"><i>Please share the feedback with us!</i></p>
-    <center>
-        {% for message in messages %}
-            <span style="color: {% if form.errors %} red; {% else %} green; {% endif %}">
-                <b>{{ message }}</b>
-            </span>
-        {% endfor %}
-    </center>
-    <div class="w3-row w3-padding-32">
-      <div class="w3-col m6 w3-large w3-margin-bottom">
-        <i class="fa fa-map-marker" style="width:30px"></i> Pune, India<br>
-        <i class="fa fa-phone" style="width:30px"></i> Phone: +91 9552105933<br>
-        <i class="fa fa-envelope" style="width:30px"> </i> Email: jain.scs@gmail.com<br>
-      </div>
-      <div class="w3-col m6">
-        <form role="form" action="" method="post">
-            {% csrf_token %}
-          <div class="w3-row-padding" style="margin:0 -16px 8px -16px">
-            <div class="w3-half">
-                {{ form.contact_name }}
+<div class="container">
+<div class="contact-page" id="contact">
+    <div class="contact-layout">
+        <div class="contact-info">
+            <h2>Get in Touch</h2>
+            <p>We'd love to hear your feedback</p>
+            <div class="c-row"><div class="c-icon"><i class="fas fa-map-marker-alt"></i></div><span>Pune, India</span></div>
+            <div class="c-row"><div class="c-icon"><i class="fas fa-phone"></i></div><span>+91 9552105933</span></div>
+            <div class="c-row"><div class="c-icon"><i class="fas fa-envelope"></i></div><span>jain.scs@gmail.com</span></div>
+        </div>
+        <div>
+            <div class="page-hd">
+                <h1>Send a Message</h1>
+                <p>We'll get back to you as soon as possible</p>
             </div>
-            <div class="w3-half">
-              {{ form.contact_email }}
+            {% for message in messages %}
+                {% if form.errors %}<div class="msg msg-error">{{ message }}</div>
+                {% else %}<div class="msg msg-success">{{ message }}</div>{% endif %}
+            {% endfor %}
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" action="">
+                        {% csrf_token %}
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Your Name</label>{{ form.contact_name }}
+                            </div>
+                            <div class="form-field">
+                                <label>Your Email</label>{{ form.contact_email }}
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <label>Message</label>{{ form.message }}
+                        </div>
+                        <div class="form-field">
+                            <label>Captcha</label>{{ form.captcha }}
+                            {% if form.captcha.errors %}<span style="font-size:11px;color:#b91c1c;">{{ form.captcha.errors.as_text }}</span>{% endif %}
+                        </div>
+                        <button class="btn btn-primary btn-block" type="submit">Send Message</button>
+                    </form>
+                </div>
             </div>
-          </div>
-          {{ form.message }}
-          <div>
-              {{ form.captcha }}
-              <span style="color:red;">{{ form.captcha.errors.as_text }}</span>
-          </div>
-            <button class="w3-button w3-black w3-section w3-right" type="submit">SEND</button>
-            <button class="w3-button w3-black w3-section w3-right" type="reset" style="margin-right:10px;">RESET</button>
-        </form>
-      </div>
+        </div>
     </div>
-  </div>
-{% endblock %}
-
-{% block extra_js %}
-    {{ block.super }}
-      <script src = "https://code.jquery.com/jquery-1.10.2.js"></script>
-      <script src = "https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
-    <script>
-        $('.js-captcha-refresh').click(function () {
-            $.getJSON("/captcha/refresh/", function (result) {
-                $('.captcha').attr('src', result['image_url']);
-                $('#id_captcha_0').val(result['key'])
-            });
-        });
-    </script>
+</div>
+</div>
 {% endblock %}

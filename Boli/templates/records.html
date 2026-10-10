@@ -1,178 +1,680 @@
 {% extends "base.html" %}
-
 {% load static i18n custom_filters %}
 
-{% block title %}{% trans "Home" %}{% endblock %}
+{% block title %}{% trans "Records" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+.rec-page { padding: 24px 0 60px; }
+.rec-header { margin-bottom: 18px; }
+.rec-header h1 {
+    font-family: var(--font-head);
+    font-size: 26px; font-weight: 600;
+    color: var(--c-text); margin-bottom: 3px;
+}
+.rec-header p { font-size: 13px; color: var(--c-text-2); }
+
+.summary-row {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; margin-bottom: 22px;
+}
+.summary-tile {
+    padding: 14px 16px; border-radius: var(--radius);
+    border: 0.5px solid var(--c-border);
+}
+.summary-tile.pending {
+    background: var(--c-yellow-l);
+    border-color: #F0E4B8;
+}
+.summary-tile.paid {
+    background: var(--c-green-l);
+    border-color: #C8DCC8;
+}
+.summary-label {
+    font-size: 11px; letter-spacing: 0.5px;
+    font-weight: 600; margin-bottom: 4px;
+}
+.summary-tile.pending .summary-label { color: var(--c-yellow-d); }
+.summary-tile.paid    .summary-label { color: var(--c-green); }
+.summary-amt {
+    font-family: var(--font-head);
+    font-size: 22px; font-weight: 600;
+}
+.summary-tile.pending .summary-amt { color: var(--c-red); }
+.summary-tile.paid    .summary-amt { color: var(--c-green); }
+
+.chart-wrap {
+    background: var(--c-surface); border: 0.5px solid var(--c-border);
+    border-radius: var(--radius-lg); overflow: hidden;
+    box-shadow: var(--shadow); margin-bottom: 22px;
+}
+.chart-wrap-head {
+    padding: 12px 18px;
+    border-bottom: 0.5px solid var(--c-border);
+    font-family: var(--font-head); font-size: 17px; font-weight: 600;
+}
+.chart-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+#piechart_3d { width: 100%; min-width: 480px; min-height: 320px; }
+
+.rec-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+.rec-card {
+    background: var(--c-surface);
+    border: 0.5px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column;
+    position: relative;
+}
+.rec-card.is-paid {
+    background: var(--c-green-l);
+    border-color: #C8DCC8;
+    opacity: 0.92;
+}
+.rec-card.is-pending::after {
+    content: '';
+    position: absolute; top: 14px; right: 14px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--c-red);
+}
+
+.rec-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 8px; gap: 10px;
+}
+.rec-title-pill {
+    display: inline-block; padding: 3px 9px;
+    border-radius: 4px; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.4px; text-transform: uppercase;
+    background: var(--c-yellow-l); color: var(--c-yellow-d);
+}
+.rec-card.is-paid .rec-title-pill {
+    background: var(--c-green); color: var(--c-white);
+}
+.rec-date {
+    font-size: 11px; color: var(--c-text-3);
+    margin-top: 6px;
+}
+.rec-mandir {
+    font-size: 11px; color: var(--c-text-3);
+    margin-top: 3px;
+}
+
+.rec-desc {
+    font-size: 13px; color: var(--c-text);
+    line-height: 1.5; margin-bottom: 10px;
+    min-height: 36px;
+}
+.rec-desc em { color: var(--c-text-3); font-style: italic; }
+
+.rec-amount-block {
+    display: flex; align-items: baseline; gap: 6px;
+    margin-bottom: 10px;
+}
+.rec-amount {
+    font-family: var(--font-head);
+    font-size: 22px; font-weight: 600;
+    color: var(--c-red);
+}
+.rec-card.is-paid .rec-amount { color: var(--c-green); }
+.rec-amount-label {
+    font-size: 11px; color: var(--c-text-3);
+}
+.rec-orig {
+    font-size: 10px; color: var(--c-text-3);
+    margin-bottom: 10px;
+}
+
+.rec-actions {
+    display: flex; gap: 6px;
+    margin-top: auto;
+}
+.rec-actions .gpay-btn {
+    flex: 1; background: var(--c-green);
+    border: none; cursor: pointer;
+    padding: 9px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+}
+.rec-actions .gpay-btn:hover { background: var(--c-green-d); }
+.rec-actions .gpay-btn img { height: 22px; }
+.rec-mark {
+    background: var(--c-white);
+    border: 0.5px solid var(--c-border);
+    color: var(--c-text-2);
+    padding: 9px 12px; border-radius: 7px;
+    cursor: pointer; display: flex; align-items: center;
+    gap: 6px; font-size: 12px;
+    font-family: var(--font-body);
+}
+.rec-mark:hover { border-color: var(--c-red); color: var(--c-red); }
+.rec-mark input { accent-color: var(--c-red); width: 14px; height: 14px; cursor: pointer; }
+
+.rec-partial-lbl {
+    background: var(--c-yellow-l) !important;
+    border-color: var(--c-yellow) !important;
+    color: var(--c-yellow-d) !important;
+    font-weight: 600;
+}
+.rec-partial-lbl:hover { background: var(--c-yellow) !important; color: var(--c-white) !important; }
+.rec-partial-lbl input { accent-color: var(--c-yellow-d); }
+
+.rec-notify {
+    display: flex; gap: 6px; margin-top: 8px;
+}
+.lnk-wa {
+    flex: 1; display: inline-flex; align-items: center; justify-content: center;
+    gap: 5px; padding: 8px; background: var(--c-green); color: var(--c-white);
+    border-radius: 6px; font-size: 12px; font-weight: 500;
+    text-decoration: none;
+}
+.lnk-wa:hover { background: var(--c-green-d); color: var(--c-white); }
+.lnk-sms {
+    flex: 1; display: inline-flex; align-items: center; justify-content: center;
+    gap: 5px; padding: 8px; background: var(--c-bg); color: var(--c-blue);
+    border: 0.5px solid var(--c-border); border-radius: 6px;
+    font-size: 12px; font-weight: 500;
+    text-decoration: none;
+}
+.lnk-sms:hover { border-color: var(--c-blue); }
+
+.pay-all-banner {
+    margin-top: 22px;
+    background: var(--c-red);
+    color: var(--c-white);
+    padding: 16px 20px;
+    border-radius: var(--radius-lg);
+    display: flex; align-items: center; gap: 16px;
+}
+.pay-all-banner .lbl {
+    font-size: 11px; opacity: 0.9; letter-spacing: 0.5px;
+}
+.pay-all-banner .amt {
+    font-family: var(--font-head);
+    font-size: 24px; font-weight: 600;
+}
+.pay-all-banner .pay-actions {
+    margin-left: auto; display: flex; gap: 10px; align-items: center;
+    flex-wrap: wrap;
+}
+.pay-all-banner button {
+    background: var(--c-white); color: var(--c-red);
+    border: none; padding: 10px 18px;
+    border-radius: var(--radius); font-weight: 600;
+    cursor: pointer; font-size: 13px;
+    font-family: var(--font-body);
+}
+.pay-all-banner button:hover { background: var(--c-yellow-l); }
+.pay-all-banner .gpay-banner-btn {
+    background: var(--c-white); padding: 6px 12px;
+    cursor: pointer; border: none; border-radius: 6px;
+}
+.pay-all-banner .gpay-banner-btn img { height: 24px; vertical-align: middle; }
+.sel-line { font-size: 13px; color: rgba(255,255,255,.95); }
+.sel-line strong { color: var(--c-yellow); font-family: var(--font-head); font-size: 16px; }
+
+.empty-state {
+    text-align: center; padding: 48px 20px;
+    background: var(--c-surface); border: 0.5px solid var(--c-border);
+    border-radius: var(--radius-lg);
+}
+.empty-state .icon { font-size: 44px; margin-bottom: 10px; }
+.empty-msg {
+    font-family: var(--font-head);
+    font-size: 19px; font-weight: 600;
+    color: var(--c-green); margin-bottom: 6px;
+}
+.empty-sub { font-size: 13px; color: var(--c-text-3); }
+
+.pay-modal-head {
+    padding: 14px 18px;
+    border-bottom: 0.5px solid var(--c-border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--c-green); color: var(--c-white);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.pay-modal-head h3 { font-family: var(--font-head); font-size: 18px; font-weight: 600; }
+.pay-modal-close { background: none; border: none; color: rgba(255,255,255,.85); font-size: 22px; cursor: pointer; line-height: 1; }
+.pay-modal-close:hover { color: var(--c-white); }
+.pay-info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.pay-info-box { background: var(--c-bg); border: 0.5px solid var(--c-border); border-radius: var(--radius); padding: 10px 12px; }
+.pay-info-box label { display: block; font-size: 10px; font-weight: 600; letter-spacing: .5px; color: var(--c-text-3); margin-bottom: 4px; text-transform: uppercase; }
+.pay-info-box .val { font-family: var(--font-head); font-size: 20px; font-weight: 600; color: var(--c-text); }
+
+.confirm-body { padding: 28px 20px; text-align: center; }
+.confirm-icon { font-size: 44px; margin-bottom: 10px; }
+.confirm-body h3 { font-family: var(--font-head); font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+.confirm-body p { font-size: 14px; color: var(--c-text-2); margin-bottom: 6px; }
+.confirm-amt { font-family: var(--font-head); font-size: 28px; color: var(--c-red); font-weight: 600; }
+.confirm-btns { display: flex; gap: 10px; margin-top: 20px; }
+.confirm-btns button { flex: 1; padding: 12px; border-radius: var(--radius); font-size: 14px; font-weight: 600; cursor: pointer; border: none; font-family: var(--font-body); }
+.confirm-yes { background: var(--c-red); color: var(--c-white); }
+.confirm-yes:hover { background: var(--c-red-d); }
+.confirm-no  { background: var(--c-bg); color: var(--c-text-2); border: 0.5px solid var(--c-border) !important; }
+
+/* Mobile table view for boli search results */
+.rec-mobile-table { display: none; }
+.rec-mtbl {
+    width: 100%; border-collapse: collapse;
+    background: var(--c-surface);
+    border: 0.5px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    font-size: 13px;
+}
+.rec-mtbl thead { background: var(--c-yellow-l); }
+.rec-mtbl th {
+    padding: 9px 8px; text-align: left;
+    font-size: 11px; font-weight: 600;
+    color: var(--c-yellow-d); letter-spacing: 0.4px;
+    text-transform: uppercase;
+    border-bottom: 0.5px solid var(--c-border);
+}
+.rec-mtbl td {
+    padding: 10px 8px;
+    border-bottom: 0.5px solid var(--c-border-soft);
+    vertical-align: top;
+}
+.rec-mtbl tr:last-child td { border-bottom: none; }
+.rec-mtbl tr.is-paid td { background: var(--c-green-l); }
+.rec-mtbl .mtbl-title {
+    font-weight: 600; color: var(--c-text);
+    line-height: 1.3;
+}
+.rec-mtbl .mtbl-date {
+    font-size: 10px; color: var(--c-text-3);
+    margin-top: 2px;
+}
+.rec-mtbl .mtbl-amt {
+    font-family: var(--font-head);
+    font-size: 16px; font-weight: 600;
+    white-space: nowrap;
+}
+.rec-mtbl .mtbl-amt.pending { color: var(--c-red); }
+.rec-mtbl .mtbl-amt.paid    { color: var(--c-green); }
+.rec-mtbl .mtbl-status {
+    display: inline-block;
+    padding: 2px 7px; border-radius: 4px;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.3px;
+}
+.rec-mtbl .mtbl-status.pending { background: var(--c-red-l); color: var(--c-red-d); }
+.rec-mtbl .mtbl-status.paid    { background: var(--c-green-l); color: var(--c-green); }
+.rec-mtbl .mtbl-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.rec-mtbl .mtbl-gpay {
+    background: var(--c-green); border: none;
+    padding: 5px 8px; border-radius: 5px;
+    cursor: pointer; display: inline-flex; align-items: center;
+}
+.rec-mtbl .mtbl-gpay img { height: 14px; display: block; }
+.rec-mtbl .mtbl-check {
+    background: var(--c-white); border: 0.5px solid var(--c-border);
+    padding: 5px 7px; border-radius: 5px;
+    color: var(--c-text-2); cursor: pointer;
+    font-size: 11px;
+}
+.rec-mtbl .mtbl-check:hover { border-color: var(--c-red); color: var(--c-red); }
+.rec-mtbl .mtbl-partial {
+    background: var(--c-yellow-l); border: 0.5px solid var(--c-yellow);
+    padding: 5px 7px; border-radius: 5px;
+    color: var(--c-yellow-d); cursor: pointer;
+    font-size: 11px; font-weight: 600;
+}
+.rec-mtbl .mtbl-partial:hover { background: var(--c-yellow); color: var(--c-white); }
+.rec-mtbl .mtbl-check-col {
+    width: 28px; padding-left: 6px; padding-right: 0; text-align: center;
+}
+.rec-mtbl .mtbl-select {
+    width: 16px; height: 16px; accent-color: var(--c-red);
+    cursor: pointer; margin: 0;
+}
+
+@media (max-width: 700px) {
+    .rec-grid { grid-template-columns: 1fr; }
+    .pay-info-row { grid-template-columns: 1fr; }
+    .summary-row { grid-template-columns: 1fr; }
+    .pay-all-banner {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        gap: 12px;
+        padding: 14px 16px;
+    }
+    .pay-all-banner .pay-actions {
+        margin-left: 0;
+        justify-content: center;
+        gap: 8px;
+    }
+    .pay-all-banner .pay-actions button {
+        flex: 1 1 auto;
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+    .pay-all-banner .sel-line {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 4px;
+    }
+    .rec-header h1 { font-size: 22px; }
+    .chart-wrap-head { font-size: 14px; padding: 10px 14px; }
+}
+
+/* Show table on phone (only when phone_number search result page) */
+@media (max-width: 600px) {
+    .rec-grid.has-mtbl { display: none; }
+    .rec-mobile-table.has-mtbl { display: block; }
+}
+</style>
+{% endblock %}
 
 {% block main %}
-    <div class="w3-container w3-content w3-center w3-padding-64" style="max-width:800px" id="record">
-        <h2 class="w3-wide w3-center">RECORDS</h2>
-        <p class="w3-opacity"><i>Jai Jinendra</i></p>
+<div class="container rec-page" id="record">
 
-        {% if not phone_number and records %}
-            <p> {{ records.0.mandir.name }} </p>
-        {% endif %}
+    <div class="rec-header">
+        <h1>{% if phone_number %}Your Boli records{% elif records %}Boli records{% else %}Jai Jinendra{% endif %}</h1>
+        <p>
+            {% if phone_number %}+91 {{ phone_number }}
+            {% elif records %}{{ records.0.mandir.name }}
+            {% else %}{{ mandir.name|default:"" }}{% endif %}
+        </p>
+    </div>
 
-        {% if request.user.is_authenticated %}
-            <div id="piechart_3d" style="width: 100%; min-height: 450px;"></div>
-        {% endif %}
+    {% if total_amt %}
+    <div class="summary-row">
+        <div class="summary-tile pending">
+            <div class="summary-label">PENDING</div>
+            <div class="summary-amt">₹{{ total_amt }}</div>
+        </div>
+        <div class="summary-tile paid">
+            <div class="summary-label">RECORDS</div>
+            <div class="summary-amt">{{ records|length }}</div>
+        </div>
+    </div>
+    {% endif %}
 
+    {% if request.user.is_authenticated %}
+    <div class="chart-wrap">
+        <div class="chart-wrap-head">{{ mandir }} — {{ month_range }}</div>
+        <div class="chart-scroll">
+            <div id="piechart_3d"></div>
+        </div>
+    </div>
+    {% endif %}
 
-        <table class="w3-table w3-bordered w3-table-all w3-centered" style="overflow: scroll;">
-            <tr>
-                {% if phone_number %}
-                    <th>{% trans 'Sr. No.' %}</th>
-                    <th>{% trans 'MANDIR NAME' %}</th>
-                {% endif %}
-                <th>{% trans 'TITLE' %}</th>
-                <th>{% trans 'NAMES' %}</th>
-                <th>{% trans 'BOLI DATE' %}</th>
-                {% if phone_number or request.user.is_authenticated %}
-                    <th>{% trans 'AMOUNT' %}</th>
-                {% endif %}
-                {% if request.user.is_authenticated %}
-                    <th>{% trans 'SMS' %}</th>
-                {% else %}
-                    <th>{% trans 'Pay Option' %}</th>
-                {% endif %}
-            </tr>
-            {% if records %}
-                {% for record in records %}
-                    <tr>
-                        {% if phone_number %}
-                            <td style="vertical-align:middle !important">
-                                <input type="checkbox" id="{{record.id}}" name="mandir"
-                                       value="{% if record.remaining_amt %}{{record.remaining_amt}}{% else %}{{record.amount}}{% endif %}" onchange="update(this);">
-                            </td>
-                            <td style="vertical-align:middle !important">{{ record.mandir.name }}</td>
-                        {% endif %}
-                        <td style="vertical-align:middle !important">{{record.get_title}}</td>
-                        <td style="vertical-align:middle !important">
-                            {% if record.account.description %}
-                                {{ record.description|safe }}
-                            {% else %}
-                                <i style="color:blue;">Entry corresponding to default number</i><br>
-                                {{ record.get_default_description }}
-                            {% endif %}
-                        </td>
-                        <td style="vertical-align:middle !important">
-                            {{record.boli_date|date}}
-                            {% if record.remaining_amt and phone_number %}
-                                <br>
-                                <b style="color:blue">Original Boli Amount</b> <br><b style="color:red">{{record.amount}}/-</b><br>
-                            {% endif %}
-                        </td>
-                        {% if phone_number or request.user.is_authenticated %}
-                            <td style="vertical-align:middle !important" class="w3-small">
-                                {% if record.remaining_amt %}
-                                    {% trans 'Remaining'%}<br>
-                                    <b>{{record.remaining_amt}}/-</b><br>
-                                {% else %}
-                                    <b>{{record.amount}}/-</b><br>
-                                {% endif %}
-                                <input id="checkbox" type="checkbox" class="w3-tooltip" title="Send an email"
-                                        onclick="display_model('{{record.id}}',
-                                        '{% if record.remaining_amt %}{{record.remaining_amt}}{% else %}{{record.amount}}{% endif %}',
-                                        '{{record.boli_date|date}}', 'None', '{{record.account.pan_card}}')">
-                                {% trans 'Paid' %} <br/>
-                                {% if record.amount > 5001 %}
-                                    {% if not record.remaining_amt or record.remaining_amt > 5001 %}
-                                        {% trans 'Or'%}<br/>
-                                        <input id="Pcheckbox" type="checkbox" class="w3-tooltip" title="Send an email"
-                                                onclick="display_model('{{record.id}}',
-                                                '{% if record.remaining_amt %}{{record.remaining_amt}}{% else %}{{record.amount}}{% endif %}',
-                                                '{{record.boli_date|date}}', 'PP', '{{record.account.pan_card}}')">
-                                        {% trans 'Partially Paid' %}
-                                    {% endif %}
-                                {% endif %}
-                            </td>
-                        {% endif %}
-                        <td style="vertical-align:middle !important" class="w3-small">
-                            {% if request.user.is_authenticated %}
-                                {% create_message sms_message record.get_title record.amount record.boli_date|date as app_message %}
-                                <a href="https://wa.me/+91{{record.account.phone_number}}?text={{app_message|urlencode|safe}}" target="_blank">WhatsApp</a>
-                                <br/>OR <br/>
-                                <a href="sms:+91{{record.account.phone_number}}?body={{app_message|safe}}" target="_blank">Regular SMS</a>
-                            {% else %}
-                                <button onclick="openGooglePay({{record.amount}})">
-                                    <img src="{% static 'images/gpay.svg' %}" width="20px" alt="Google Pay" class="gpay-icon">
-                                </button>
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-                {% if total_amt %}
-                    <tr><td colspan="7">
-                        <div class='pm-button' style="float: left; width: 30%;">
-                            Selected Amount :- <span id='chk_total'>0</span><br/>
-                            <input type="hidden" id="smtArrId" value="">
-                            <input id="chb_amt" type="checkbox" disabled class="w3-tooltip" title="Send an email"
-                                    onclick="display_model(document.getElementById('smtArrId').value,
-                                            document.getElementById('chk_total').textContent,
-                                            '{{records.0.boli_date|date}}', 'None', '{{records.0.account.pan_card}}')">
-                            {% trans 'Paid selected amount' %} <br/>
-                            <button onclick="openGooglePay(document.getElementById('chk_total').textContent)">
-                                <img src="{% static 'images/gpay.svg' %}" width="20px" alt="Google Pay" class="gpay-icon">
-                            </button>
-                        </div>
-                        <div style="float:right;">
-                            Total :- <b>{{ total_amt }}/-</b> <br/>
-                            <input id="paid_chk" type="checkbox" class="w3-tooltip" title="Send an email"
-                                    onclick="confirmationUserAction('{{total_amt}}')">
-                            {% trans 'Paid' %}
-                            <button onclick="openGooglePay({{total_amt}})">
-                                <img src="{% static 'images/gpay.svg' %}" width="20px" alt="Google Pay" class="gpay-icon">
-                            </button>
-                        </div>
-                    </td></tr>
-                {% endif %}
-            {% else %}
-                <tr><td colspan="5"><center>
+    {% if records %}
+    <div class="rec-grid {% if phone_number %}has-mtbl{% endif %}">
+        {% for record in records %}
+        <div class="rec-card {% if record.paid %}is-paid{% else %}is-pending{% endif %}">
+            <div class="rec-head">
+                <div>
+                    <span class="rec-title-pill">{{ record.get_title }}</span>
+                    <div class="rec-date">{{ record.boli_date|date:'d M Y' }}</div>
                     {% if phone_number %}
-                        <span style="font-weight:bold; color:blueviolet;">Thanks for the donations</span> <br>
-                    There is no record in <b>not paid</b> status for {{phone_number}}
-                    {% else %}
-                       No record found !
+                    <div class="rec-mandir">{{ record.mandir.name }}</div>
                     {% endif %}
-                </center></td></tr>
+                </div>
+            </div>
+
+            <div class="rec-desc">
+                {% if record.account.description %}
+                    {{ record.description|safe }}
+                {% else %}
+                    <em>Default entry</em><br>
+                    {{ record.get_default_description }}
+                {% endif %}
+            </div>
+
+            <div class="rec-amount-block">
+                {% if record.remaining_amt %}
+                <span class="rec-amount">₹{{ record.remaining_amt }}</span>
+                <span class="rec-amount-label">remaining</span>
+                {% else %}
+                <span class="rec-amount">₹{{ record.amount }}</span>
+                <span class="rec-amount-label">{% if record.paid %}paid{% else %}due{% endif %}</span>
+                {% endif %}
+            </div>
+
+            {% if record.remaining_amt %}
+            <div class="rec-orig">
+                <strong>Original ₹{{ record.amount }}</strong> · partial paid
+            </div>
             {% endif %}
+
+            {% if phone_number %}
+                {% if not record.paid %}
+                <label class="rec-mark" style="margin-bottom: 8px;">
+                    <input type="checkbox" id="{{ record.id }}"
+                        value="{% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %}"
+                        onchange="update(this);">
+                    Add to pay total
+                </label>
+                <div class="rec-actions">
+                    <button class="gpay-btn" onclick="openGooglePay({% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %})" aria-label="Pay via GPay">
+                        <img src="{% static 'images/gpay.svg' %}" alt="GPay">
+                    </button>
+                    <button class="rec-mark" onclick="display_model('{{ record.id }}','{% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %}','{{ record.boli_date|date:'d M Y' }}','None','{{ record.account.pan_card }}')" aria-label="Mark paid">
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+                {% if record.amount > 1 %}{% if not record.remaining_amt or record.remaining_amt > 1 %}
+                <label class="rec-mark rec-partial-lbl" style="margin-top: 6px; justify-content: center;">
+                    <input type="checkbox"
+                        onclick="display_model('{{ record.id }}','{% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %}','{{ record.boli_date|date:'d M Y' }}','PP','{{ record.account.pan_card }}')">
+                    <i class="fas fa-coins" style="margin-right:4px;"></i> Partial payment
+                </label>
+                {% endif %}{% endif %}
+                {% endif %}
+            {% elif request.user.is_authenticated %}
+                {% create_message sms_message record.get_title record.amount record.boli_date|date as app_message %}
+                <div class="rec-notify">
+                    <a class="lnk-wa" href="https://wa.me/+91{{ record.account.phone_number }}?text={{ app_message|urlencode|safe }}" target="_blank">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </a>
+                    <a class="lnk-sms" href="sms:+91{{ record.account.phone_number }}?body={{ app_message|safe }}" target="_blank">
+                        <i class="fas fa-sms"></i> SMS
+                    </a>
+                </div>
+            {% else %}
+                <div class="rec-actions">
+                    <button class="gpay-btn" onclick="openGooglePay({{ record.amount }})" aria-label="Pay via GPay">
+                        <img src="{% static 'images/gpay.svg' %}" alt="GPay">
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if phone_number %}
+    <div class="rec-mobile-table has-mtbl">
+        <table class="rec-mtbl">
+            <thead>
+                <tr>
+                    <th class="mtbl-check-col" aria-label="Select"></th>
+                    <th>Boli</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr class="{% if record.paid %}is-paid{% endif %}">
+                    <td class="mtbl-check-col">
+                        {% if not record.paid %}
+                        <input type="checkbox" class="mtbl-select"
+                               id="m{{ record.id }}"
+                               value="{% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %}"
+                               onchange="update(this);"
+                               aria-label="Add to pay total">
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="mtbl-title">{{ record.get_title }}</div>
+                        <div class="mtbl-date">{{ record.boli_date|date:'d M Y' }}</div>
+                        <div class="mtbl-date">{{ record.mandir.name }}</div>
+                    </td>
+                    <td>
+                        {% if record.remaining_amt %}
+                            <div class="mtbl-amt {% if record.paid %}paid{% else %}pending{% endif %}">₹{{ record.remaining_amt }}</div>
+                            <div class="mtbl-date">of ₹{{ record.amount }}</div>
+                        {% else %}
+                            <div class="mtbl-amt {% if record.paid %}paid{% else %}pending{% endif %}">₹{{ record.amount }}</div>
+                        {% endif %}
+                        <span class="mtbl-status {% if record.paid %}paid{% else %}pending{% endif %}">
+                            {% if record.paid %}Paid{% else %}Due{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        {% if not record.paid %}
+                        <div class="mtbl-actions">
+                            <button class="mtbl-gpay" onclick="openGooglePay({% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %})" aria-label="Pay via GPay">
+                                <img src="{% static 'images/gpay.svg' %}" alt="GPay">
+                            </button>
+                            <button class="mtbl-check" onclick="display_model('{{ record.id }}','{% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %}','{{ record.boli_date|date:'d M Y' }}','None','{{ record.account.pan_card }}')" aria-label="Mark paid">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            {% if record.amount > 1 %}{% if not record.remaining_amt or record.remaining_amt > 1 %}
+                            <button class="mtbl-partial" onclick="display_model('{{ record.id }}','{% if record.remaining_amt %}{{ record.remaining_amt }}{% else %}{{ record.amount }}{% endif %}','{{ record.boli_date|date:'d M Y' }}','PP','{{ record.account.pan_card }}')" aria-label="Partial payment" title="Partial payment">
+                                <i class="fas fa-coins"></i>
+                            </button>
+                            {% endif %}{% endif %}
+                        </div>
+                        {% else %}
+                        <span style="font-size:11px;color:var(--c-text-3);">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
     </div>
-    {% include 'update_form.html' %}
-    {% include 'confirmation_check.html'%}
+    {% endif %}
+
+    {% if total_amt %}
+    <div class="pay-all-banner">
+        <div>
+            <div class="lbl">PAY ALL PENDING</div>
+            <div class="amt">₹{{ total_amt }}</div>
+        </div>
+        <div class="pay-actions">
+            <span class="sel-line">Selected: <strong id="chk_total">₹0</strong></span>
+            <input type="hidden" id="smtArrId" value="">
+            <button id="chb_amt"
+                onclick="display_model(document.getElementById('smtArrId').value,
+                    document.getElementById('chk_total').textContent.replace('₹',''),
+                    '{{ records.0.boli_date|date:'d M Y' }}','None','{{ records.0.account.pan_card }}')">
+                Pay selected
+            </button>
+            <button class="gpay-banner-btn" onclick="openGooglePay(document.getElementById('chk_total').textContent.replace('₹',''))">
+                <img src="{% static 'images/gpay.svg' %}" alt="GPay">
+            </button>
+            <button onclick="confirmationUserAction('{{ total_amt }}')">Pay all (₹{{ total_amt }})</button>
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <div class="icon">🙏</div>
+        {% if phone_number %}
+        <div class="empty-msg">All clear — no pending records</div>
+        <div class="empty-sub">for {{ phone_number }} · Thank you for your donations!</div>
+        {% else %}
+        <div class="empty-msg">No records found for today</div>
+        <div class="empty-sub">Jai Jinendra</div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<div class="modal-backdrop" id="EmailModal">
+    <div class="modal">
+        <div class="pay-modal-head">
+            <h3>Payment Details</h3>
+            <button class="pay-modal-close" onclick="close_update()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="pay-info-row">
+                <div class="pay-info-box">
+                    <label>Original Amount</label>
+                    <div class="val">₹<span id="org_amount_val">0</span></div>
+                </div>
+                <div class="pay-info-box">
+                    <label>Amount Paid</label>
+                    <div class="val">₹<span id="amount_val">0</span></div>
+                </div>
+            </div>
+            <p style="font-size:12px;color:var(--c-text-3);margin-bottom:16px;">
+                Boli Date: <strong id="boli_date"></strong>
+            </p>
+            <form action="{% url 'payment-done' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" id="record_id" name="record_id">
+                <input type="hidden" id="phone_number" name="phone_number">
+                <div class="form-field" id="ff_partial_payment" style="display:none;">
+                    <label>Partial Payment Amount</label>{{ payment_form.partial_payment }}
+                </div>
+                <div class="form-field">
+                    <label>Payment Mode</label>{{ payment_form.payment_mode }}
+                </div>
+                <div class="form-field" id="ff_id_details" style="display:none;">
+                    <label>Transaction / Reference ID</label>{{ payment_form.id_details }}
+                </div>
+                <div class="form-field">
+                    <label>Send Receipt To</label>{{ payment_form.send_to }}
+                </div>
+                <div class="form-field">
+                    <label>PAN Card</label>{{ payment_form.pan_card }}
+                </div>
+                <div class="form-field">
+                    <label>Remark</label>{{ payment_form.remark }}
+                </div>
+                <button class="btn btn-primary btn-block" type="submit">Send Receipt & Confirm</button>
+                <button type="button" class="btn btn-ghost btn-block" style="margin-top:8px;" onclick="close_update()">Cancel</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="customConfirmation">
+    <div class="modal" style="max-width:360px;">
+        <div class="confirm-body">
+            <div class="confirm-icon">🙏</div>
+            <h3>Confirm Full Payment</h3>
+            <p>Mark all pending records as paid.</p>
+            <div class="confirm-amt">₹<span id="confirm_val">0</span></div>
+            <div class="confirm-btns">
+                <button class="confirm-no" onclick="closeConfirmationModel()">Cancel</button>
+                <button class="confirm-yes" onclick="openModelBox('01','{{ total_amt }}','{{ records.0.boli_date|date:'d M Y' }}','None','{{ records.0.account.pan_card }}')">Yes, Proceed</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script type="text/javascript">
-      google.charts.load('current', {'packages':['bar']});
-      google.charts.setOnLoadCallback(drawChart);
-
-      function drawChart() {
-        var data = google.visualization.arrayToDataTable({{month_data|safe}});
-
-        var options = {
-          chart: {
-            title: '{{mandir}}',
-            subtitle: 'Records paid and not paid: {{month_range}}',
-          },
-          colors: ['#509B52', '#FF0000'],
-          bars: 'vertical' // Required for Material Bar Charts.
-        };
-
-        var chart = new google.charts.Bar(document.getElementById('piechart_3d'));
-
-        chart.draw(data, google.charts.Bar.convertOptions(options));
-      }
-    drawChart();
-    </script>
-    <script>
-        const panInput = document.getElementById('id_pan_card');
-
-        panInput.addEventListener('input', function () {
-            this.value = this.value.toUpperCase();
-        });
-    </script>
-
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+    google.charts.load('current',{'packages':['bar']});
+    google.charts.setOnLoadCallback(drawChart);
+    function drawChart(){
+        var dataEl = document.getElementById('piechart_3d');
+        if (!dataEl) return;
+        var data=google.visualization.arrayToDataTable({{ month_data|safe }});
+        var options={chart:{title:'{{ mandir }}',subtitle:'Records paid and not paid: {{ month_range }}'},colors:['#1B5E20','#C8102E'],bars:'vertical'};
+        var chart=new google.charts.Bar(dataEl);
+        chart.draw(data,google.charts.Bar.convertOptions(options));
+    }
+    var panInput=document.getElementById('id_pan_card');
+    if(panInput) panInput.addEventListener('input',function(){this.value=this.value.toUpperCase();});
+</script>
 {% endblock %}

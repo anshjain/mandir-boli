@@ -1,198 +1,199 @@
-// Automatic Slideshow - change image every 4 seconds
+// Carousel
 var myIndex = 0;
-var running_total = 0;
-var paid_ids = [];
-
 function carousel() {
-    var i;
-    var x = document.getElementsByClassName("mySlides");
-    for (i = 0; i < x.length; i++) {
-       x[i].style.display = "none";
-    }
+    var x = document.getElementsByClassName("hero-slide");
+    if (!x.length) return;
+    for (var i = 0; i < x.length; i++) x[i].style.display = "none";
     myIndex++;
-    if (myIndex > x.length) {myIndex = 1}
-    x[myIndex-1].style.display = "block";
+    if (myIndex > x.length) myIndex = 1;
+    x[myIndex - 1].style.display = "block";
     setTimeout(carousel, 4000);
 }
 
-// Used to toggle the menu on small screens when clicking on the menu button
-function myFunction() {
-    var x = document.getElementById("navDemo");
-    if (x.className.indexOf("w3-show") == -1) {
-        x.className += " w3-show";
-    } else {
-        x.className = x.className.replace(" w3-show", "");
-    }
-}
-
-// When the user clicks anywhere outside of the modal, close it
-var modal = document.getElementById('EmailModal');
-var confirm_modal = document.getElementById('customConfirmation');
-window.onclick = function(event) {
-  if (event.target == modal) {
-    close_update();
-  }
-  if (event.target == confirm_modal){
-    closeConfirmationModel();
-  }
-}
-
-function display_model(record_id, amount, date, partial, pan_card){
-    document.getElementById("record_id").value = record_id;
-    document.getElementById('EmailModal').style.display='block';
-
-    if (partial=="PP"){
-        document.getElementById("Original_amount").style.display='block';
-        document.getElementById("id_partial_payment").style.display='block';
-        document.getElementById("id_partial_payment").required = true;
-        document.getElementById("amount_val").innerHTML = "0.00";
-    } else {
-        document.getElementById("id_partial_payment").style.display='none';
-        document.getElementById("Original_amount").style.display='none';
-        document.getElementById("id_partial_payment").required = false;
-        document.getElementById("amount_val").innerHTML = amount + '.00';
-    }
-    document.getElementById("org_amount_val").innerHTML = amount + '.00';
-    document.getElementById("boli_date").innerHTML = date;
-    document.getElementById("phone_number").value = document.getElementById("pNumber").value;
-
-    if (pan_card !== "None"){
-        document.getElementById("id_pan_card").value = '********';
-        document.getElementById("id_pan_card").readOnly = true;
-    }
-}
-
-function close_update(){
-    document.getElementById('EmailModal').style.display='none';
-    var checkboxes = document.getElementsByTagName('input');
-    paid_ids = [];
-    running_total = 0;
-    for (var i = 0; i < checkboxes.length; i++) {
-        if (checkboxes[i].type == 'checkbox') {
-            checkboxes[i].checked = false;
-        }
-    document.getElementById('chk_total').textContent = running_total;
-    document.getElementById("chb_amt").disabled = true;
-    }
-};
-
-function payment_cal(){
-    var paid_amount = parseInt(document.getElementById("id_partial_payment").value);
-    var original_amount = parseInt(document.getElementById("org_amount_val").innerText);
-    if (original_amount < paid_amount){
-        document.getElementById("amount_val").innerHTML = "Amount greater than Original amount not allowed!";
-        document.getElementById("amount_val").style.color = "red";
-        document.getElementById("id_partial_payment").value = ''
-    } else {
-        document.getElementById("amount_val").style.color = "black";
-        document.getElementById("amount_val").innerHTML = paid_amount + '.00';
-    }
-}
-
-function payment_md(){
-    var mode = document.getElementById("id_payment_mode").value;
-    if (mode === 'Cash'){
-        document.getElementById('id_id_details').style.display='none';
-        document.getElementById("id_id_details").required = false;
-    } else {
-        document.getElementById('id_id_details').style.display='block';
-        document.getElementById("id_id_details").required = true;
-    }
-}
-
-
-var pNumber = document.getElementById("pNumber");
-pNumber.addEventListener("keyup", function(event) {
-  event.preventDefault();
-  if (event.keyCode === 13) {
-    var url = '/search/?phone_number='+pNumber.value+'#record'
-    window.open(url, "_self");
-  }
+// Close modals on backdrop click
+window.addEventListener('click', function(e) {
+    var em = document.getElementById('EmailModal');
+    var cm = document.getElementById('customConfirmation');
+    if (em && e.target === em) close_update();
+    if (cm && e.target === cm) closeConfirmationModel();
 });
 
+var running_total = 0, paid_ids = [];
+var _modal_original_amount = 0;  // tracked for partial-payment math
 
-var getUrlParameter = function getUrlParameter(sParam) {
-    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
-        sURLVariables = sPageURL.split('&'),
-        sParameterName,
-        i;
+function display_model(record_id, amount, date, partial, pan_card) {
+    var modal = document.getElementById('EmailModal');
+    if (!modal) return;
+    document.getElementById('record_id').value = record_id;
+    modal.classList.add('open');
 
-    for (i = 0; i < sURLVariables.length; i++) {
-        sParameterName = sURLVariables[i].split('=');
+    var ffPartial = document.getElementById('ff_partial_payment');
+    var partInput = document.getElementById('id_partial_payment');
+    var amtSpan   = document.getElementById('amount_val');
+    var orgSpan   = document.getElementById('org_amount_val');
+    var dateSpan  = document.getElementById('boli_date');
+    var phoneHid  = document.getElementById('phone_number');
+    var pNum      = document.getElementById('pNumber');
 
-        if (sParameterName[0] === sParam) {
-            return sParameterName[1] === undefined ? true : sParameterName[1];
-        }
+    var amtNum = parseFloat(amount) || 0;
+    _modal_original_amount = amtNum;
+
+    if (partial === 'PP') {
+        // Partial payment: show input, start "amount paid" at 0
+        if (ffPartial) ffPartial.style.display = 'block';
+        if (partInput) { partInput.required = true; partInput.value = ''; }
+        if (amtSpan)   amtSpan.innerHTML = '0.00';
+    } else {
+        // Full payment: hide partial input, show full amount as paid
+        if (ffPartial) ffPartial.style.display = 'none';
+        if (partInput) { partInput.required = false; partInput.value = ''; }
+        if (amtSpan)   amtSpan.innerHTML = amtNum.toFixed(2);
     }
-};
+    if (orgSpan)  orgSpan.innerHTML  = amtNum.toFixed(2);
+    if (dateSpan) dateSpan.innerHTML = date;
+    if (phoneHid && pNum) phoneHid.value = pNum.value;
 
+    // Reset payment mode UI to default (Cash → hide transaction id)
+    var modeSel = document.getElementById('id_payment_mode');
+    if (modeSel) modeSel.value = 'Cash';
+    var ffId = document.getElementById('ff_id_details');
+    if (ffId) ffId.style.display = 'none';
 
-/* Function will fetch description based phone number */
+    var panField = document.getElementById('id_pan_card');
+    if (panField && pan_card && pan_card !== 'None' && pan_card !== '') {
+        panField.value = '********'; panField.readOnly = true;
+    } else if (panField) {
+        panField.value = ''; panField.readOnly = false;
+    }
+}
+
+// Toggle transaction-id field based on selected payment mode
+function payment_md() {
+    var modeSel = document.getElementById('id_payment_mode');
+    var ffId    = document.getElementById('ff_id_details');
+    if (!modeSel || !ffId) return;
+    if (modeSel.value === 'Cash') {
+        ffId.style.display = 'none';
+    } else {
+        ffId.style.display = 'block';
+    }
+}
+
+// Recalculate "Amount Paid" display as the user types into the partial-payment input
+function payment_cal() {
+    var partInput = document.getElementById('id_partial_payment');
+    var amtSpan   = document.getElementById('amount_val');
+    if (!partInput || !amtSpan) return;
+    var v = parseFloat(partInput.value);
+    if (isNaN(v) || v < 0) v = 0;
+    if (v > _modal_original_amount) {
+        // Don't let user pay more than the outstanding amount
+        v = _modal_original_amount;
+        partInput.value = v;
+    }
+    amtSpan.innerHTML = v.toFixed(2);
+}
+
+function close_update() {
+    var modal = document.getElementById('EmailModal');
+    if (modal) modal.classList.remove('open');
+    paid_ids = []; running_total = 0;
+    document.querySelectorAll('input[type=checkbox]').forEach(function(c){ c.checked = false; });
+    var t = document.getElementById('chk_total'); if (t) t.textContent = '₹0';
+    var b = document.getElementById('chb_amt');   if (b) b.disabled = true;
+}
+
+function update(checkbox) {
+    var b = document.getElementById('chb_amt');
+    if (b) b.disabled = false;
+    if (checkbox.checked) { running_total += parseInt(checkbox.value); paid_ids.push(checkbox.id); }
+    else {
+        running_total -= parseInt(checkbox.value);
+        paid_ids = paid_ids.filter(function(id){ return id !== checkbox.id; });
+        if (running_total === 0 && b) b.disabled = true;
+    }
+    var t = document.getElementById('chk_total'); if (t) t.textContent = '₹' + running_total;
+    var s = document.getElementById('smtArrId');  if (s) s.value = paid_ids;
+}
+
+function openGooglePay(amount) {
+    var amt = String(amount).replace('₹','').trim();
+    if (!amt || amt === '0') { alert('Please select at least one record.'); return; }
+
+    var UPI_ID  = '8799928255@mahb';
+    var UPI_NAME = 'Sus%20Digambar%20Jain%20Mandir';
+    var upiUrl  = 'upi://pay?pa=' + UPI_ID + '&pn=' + UPI_NAME + '&am=' + amt + '&cu=INR';
+    var gpayUrl = 'https://pay.google.com/gp/v/send/' + UPI_ID + '?amount=' + amt + '&currencyCode=INR';
+
+    var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile) {
+        // On mobile: try the UPI deep-link (opens GPay / PhonePe / any UPI app)
+        window.location.href = upiUrl;
+    } else {
+        // On desktop: UPI deep-links don't work, so show a modal with QR + manual details
+        var existing = document.getElementById('_upi_desktop_modal');
+        if (existing) existing.remove();
+
+        var modal = document.createElement('div');
+        modal.id = '_upi_desktop_modal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:99999;font-family:sans-serif;';
+
+        var qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(upiUrl);
+
+        modal.innerHTML = [
+            '<div style="background:#fff;border-radius:12px;padding:28px 32px;max-width:360px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.25);">',
+            '  <h3 style="margin:0 0 4px;font-size:17px;color:#1a1a1a;">Pay via UPI</h3>',
+            '  <p style="margin:0 0 16px;font-size:13px;color:#555;">Scan with GPay, PhonePe, Paytm or any UPI app</p>',
+            '  <img src="' + qrSrc + '" alt="UPI QR Code" style="width:200px;height:200px;border:1px solid #eee;border-radius:8px;" />',
+            '  <div style="margin:16px 0 8px;padding:10px;background:#f5f5f5;border-radius:8px;font-size:13px;color:#333;">',
+            '    <div><strong>UPI ID:</strong> ' + UPI_ID + '</div>',
+            '    <div><strong>Amount:</strong> ₹' + amt + '</div>',
+            '    <div><strong>Name:</strong> Sus Digambar Jain Mandir</div>',
+            '  </div>',
+            '  <p style="font-size:11px;color:#888;margin:8px 0 16px;">After payment, please mark it as paid in the app.</p>',
+            '  <button id="_upi_close_btn" style="background:#4CAF50;color:#fff;border:none;padding:10px 28px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600;">Close</button>',
+            '</div>'
+        ].join('');
+
+        document.body.appendChild(modal);
+        document.getElementById('_upi_close_btn').onclick = function() { modal.remove(); };
+        modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+    }
+}
+
+function confirmationUserAction(amount) {
+    var v = document.getElementById('confirm_val'); if (v) v.innerHTML = amount + '.00';
+    var m = document.getElementById('customConfirmation'); if (m) m.classList.add('open');
+}
+
+function openModelBox(record_id, amount, date, partial, pan_card) {
+    var m = document.getElementById('customConfirmation'); if (m) m.classList.remove('open');
+    display_model(record_id, amount, date, partial, pan_card);
+}
+
+function closeConfirmationModel() {
+    var m = document.getElementById('customConfirmation'); if (m) m.classList.remove('open');
+    var c = document.getElementById('paid_chk'); if (c) c.checked = false;
+}
+
+function Openwhatsapp(phone) {
+    window.open('https://api.whatsapp.com/send?phone=' + phone, '', 'toolbar=no,status=no,menubar=no,scrollbars=no,resizable=no,height=500,width=657');
+}
+
 function get_description() {
-    var phone_number = $("#id_phone_number").val();
-    var data = {
-        phone_number: phone_number
-    };
-
-    if (phone_number.length >= 10){
-        $('#id_description').focus();
-        $.get('/get/description/', data, function(data){
-               $('#id_description').val(data.description);
+    var phone = document.getElementById('id_phone_number');
+    if (phone && phone.value.length >= 10 && typeof $ !== 'undefined') {
+        $.get('/get/description/', {phone_number: phone.value}, function(data) {
+            var d = document.getElementById('id_description');
+            if (d && data.description) d.value = data.description;
         }, 'json');
     }
 }
 
-function Openwhatsapp(phone_number) {
-   var url = "https://api.whatsapp.com/send?phone=" + phone_number
-    window.open(url,"","toolbar=no,status=no,menubar=no,location=center,scrollbars=no,resizable=no,height=500,width=657");
+var pNum = document.getElementById('pNumber');
+if (pNum) {
+    pNum.addEventListener('keyup', function(e) {
+        if (e.keyCode === 13) window.open('/search/?phone_number=' + pNum.value + '#record', '_self');
+    });
 }
-
-function update(mandir) {
-    document.getElementById("chb_amt").disabled = false;
-    // Check
-    if(mandir.checked == true){
-        // Add value to running_total
-        running_total += parseInt(mandir.value);
-        document.getElementById('chk_total').textContent = running_total;
-        paid_ids.push(mandir.id);
-        document.getElementById('smtArrId').value = paid_ids;
-    }
-    // Uncheck
-    if(mandir.checked == false){
-        // Subtract value from running_total
-        running_total -= parseInt(mandir.value);
-        document.getElementById('chk_total').textContent = running_total;
-        let index = paid_ids.indexOf(mandir.id);  // find the index of mandir.id
-        if (index !== -1) {
-            paid_ids.splice(index, 1);      // remove it
-        }
-        document.getElementById('smtArrId').value = paid_ids;
-        if (running_total == 0){
-            document.getElementById("chb_amt").disabled = true;
-        }
-    }
-}
-
-function openGooglePay(amount) {
-    if (amount != "0"){
-        const googlePayDeepLink = "upi://pay?pa=8799928255@mahb&pn=susdigamberjainmadir&am="+amount+"&cu=INR";
-        window.open(googlePayDeepLink, '_blank');
-    } else {
-        alert("Please select at least one record.")
-    }
-}
-
-function confirmationUserAction(amount){
-    document.getElementById("confirm_val").innerHTML = amount + '.00';
-    document.getElementById('customConfirmation').style.display='block';
-}
-
-function openModelBox(record_id, amount, date, partial, pan_card) {
-        document.getElementById('customConfirmation').style.display='None';
-        display_model(record_id, amount, date, partial, pan_card)
-}
-
-function closeConfirmationModel(){
-    document.getElementById('customConfirmation').style.display='none';
-    document.getElementById("paid_chk").checked = false;
-};

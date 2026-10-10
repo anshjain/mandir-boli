@@ -36,6 +36,11 @@ from mandir.utils import (
     send_payment_email
 )
 
+from mandir.jain_calendar_views import (
+    events_on, FESTIVALS_2026, KALYANAKS_2026, PARV_TITHIS_2026,
+    format_kalyanak, parse_date
+)
+
 Month_dict = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: "Jun",
               7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'}
 
@@ -51,6 +56,29 @@ class HomeView(ListView):
         # Mandir object into the context
         if self.request.user.is_authenticated and not self.request.user.is_superuser:
             context['mandir'] = self.request.user.userprofile.mandir
+
+        # Add upcoming Jain Calendar events (next 5)
+        from datetime import date as _date
+        _today = _date.today()
+        _upcoming = []
+        for ds, name, ftype in FESTIVALS_2026:
+            d = parse_date(ds)
+            if d >= _today:
+                _upcoming.append({'date': ds, 'weekday': d.strftime('%A'), 'name': name, 'type': ftype})
+        for ds, tirthankar, types in KALYANAKS_2026:
+            d = parse_date(ds)
+            if d >= _today:
+                _upcoming.append({'date': ds, 'weekday': d.strftime('%A'), 'name': tirthankar + ' — ' + format_kalyanak(types), 'type': 'kalyanak'})
+        for ds, tithi in PARV_TITHIS_2026:
+            d = parse_date(ds)
+            if d >= _today:
+                if 'Ashtami' in tithi:
+                    _upcoming.append({'date': ds, 'weekday': d.strftime('%A'), 'name': tithi, 'type': 'ashtami'})
+                elif 'Chaturdashi' in tithi:
+                    _upcoming.append({'date': ds, 'weekday': d.strftime('%A'), 'name': tithi, 'type': 'chaturdashi'})
+        _upcoming.sort(key=lambda x: parse_date(x['date']))
+        context['upcoming_events'] = _upcoming[:8]
+        context['today_events'] = events_on(_today)
 
         return context
 
@@ -122,6 +150,8 @@ class RecordListView(ListView):
         """
         records = self.model.objects.filter(mandir=mandir).only('boli_date', 'paid').order_by('boli_date')
         month_data = [[str('Month'), str('Paid'), str('Not Paid')]]
+        if not records.exists():
+            return month_data, ''
         first_month = str(Month_dict.get(records[0].boli_date.month))
 
         for k, g in groupby(records, key=lambda i: i.boli_date.month):

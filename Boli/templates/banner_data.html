@@ -1,29 +1,25 @@
-{% load static i18n static %}
+{% load static i18n %}
 
-<div class="mySlides w3-display-container w3-center">
-     <img src="{% static 'images/Gomateshva.jpg' %}" style="width:100%;">
-     <div class="w3-display-bottommiddle w3-container w3-text-white w3-padding-32">
-        <h3><a href="{% url 'event' '1' %}#event_details">
-            {{mandirs.0.mandir_event.first}}
-        </a>
-        </h3>
-     </div>
- </div>
-<div class="mySlides w3-display-container w3-center">
-     <img src="{% static 'images/Screen_Shot_2018-06-24_at_00.11.25.png' %}" style="width:100%;">
-     <div class="w3-display-bottommiddle w3-container w3-text-white w3-padding-32 w3-hide-small">
-        <h3><a href="{% url 'event' '1' %}#event_details">
-            {{mandirs.0.mandir_event.first}}
-        </a>
-        </h3>
-     </div>
- </div>
-<div class="mySlides w3-display-container w3-center">
-    <img src="{% static 'images/Gomateshva-2.jpg' %}" style="width:100%;">
-    <div class="w3-display-bottommiddle w3-container w3-text-white w3-padding-32 w3-hide-small">
-        <h3><a href="{% url 'event' '1' %}#event_details">
-            {{mandirs.0.mandir_event.first}}
-        </a>
-        </h3>
+<div class="hero-slide">
+    <img src="{% static 'images/hero-bhagwan-ji.jpg' %}" alt="Bhagwan ji">
+    <div class="hero-caption">
+        <h3>Bhagwan ji</h3>
+        <p>जय जिनेन्द्र · {{ mandirs.0.name }}</p>
+    </div>
+</div>
+
+<div class="hero-slide">
+    <img src="{% static 'images/hero-mandir-ji.jpg' %}" alt="Mandir ji">
+    <div class="hero-caption">
+        <h3>Mandir ji</h3>
+        <p>{{ mandirs.0.committee_name|default:mandirs.0.name }}</p>
+    </div>
+</div>
+
+<div class="hero-slide">
+    <img src="{% static 'images/hero-guru-ji.jpg' %}" alt="Guru ji">
+    <div class="hero-caption">
+        <h3>Guru ji</h3>
+        <p>आचार्य श्री · दर्शन एवं प्रवचन</p>
     </div>
 </div>
