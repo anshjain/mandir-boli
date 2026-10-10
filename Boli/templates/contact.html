@@ -147,14 +147,14 @@
                             <button class="promo-cta promo-cta-wa"
                                     onclick="sharePromo(this)"
                                     data-title="{{ promo.title }}"
-                                    data-body-id="{{ 'ct-body-'|add:forloop.counter }}"
+                                    data-body-id="ct-pbody-{{ promo.id }}"
                                     {% if promo.image %}data-image="{{ promo.image.url }}"{% endif %}>
                                 <i class="fas fa-share-alt"></i>
                                 {% if promo.cta_label %}{{ promo.cta_label }}{% else %}Share Now{% endif %}
                             </button>
                         </div>
                         {# Hidden raw body — avoids unicode encoding #}
-                        <span id="{{ 'ct-body-'|add:forloop.counter }}" style="display:none;">{{ promo.body }}</span>
+                        <span id="ct-pbody-{{ promo.id }}" style="display:none;">{{ promo.body }}</span>
                     </div>
                 </div>
                 {% endfor %}
