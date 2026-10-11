@@ -79,7 +79,7 @@
     background: radial-gradient(circle at 50% 40%, rgba(244,196,48,0.28) 0%, transparent 60%);
 }
 .mandir-banner-idol {
-    position: absolute; top: 50%; left: 50%;
+    position: absolute; top: 29%; left: 50%;
     transform: translate(-50%, -50%);
     width: 78px; height: 78px;
     border-radius: 50%;
