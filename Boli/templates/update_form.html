@@ -1,6 +1,8 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/payment_modals.css' %}">
 <!-- Payment Modal -->
-<div class="modal-overlay" id="EmailModal" style="display:none;">
-  <div class="modal-box" style="max-width:500px;">
+<div class="modal-overlay is-hidden" id="EmailModal">
+  <div class="modal-box modal-box--payment">
     <div class="modal-header">
       <span class="modal-title">💳 Payment Details</span>
       <button class="modal-close" onclick="close_update()">×</button>
@@ -9,7 +11,7 @@
       {% csrf_token %}
       <div class="modal-amount-display">₹<span id="amount_val">0</span></div>
       <div class="modal-amount-sub">
-        <span id="Paid_amount" style="display:none;">Amount paid: <span id="paid_amount_sub">0</span></span>
+        <span class="is-hidden" id="Paid_amount">Amount paid: <span id="paid_amount_sub">0</span></span>
         <span id="Original_amount">Original: ₹<span id="org_amount_val">0</span></span>
         &nbsp;·&nbsp; Boli Date: <span id="boli_date">—</span>
       </div>

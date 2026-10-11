@@ -1,0 +1,13 @@
+/* confirmation_check.html + update_form.html — legacy payment modal partials */
+
+.modal-box--confirm { max-width: 420px; text-align: center; }
+.modal-box--payment { max-width: 500px; }
+.confirm-text { font-size: 15px; color: var(--ink-mid); margin-bottom: 14px; }
+.confirm-amount {
+    font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 700;
+    color: var(--crimson); margin-bottom: 6px;
+}
+.confirm-label { font-size: 13px; color: var(--ink-soft); margin-bottom: 24px; }
+.confirm-actions { display: flex; gap: 10px; justify-content: center; }
+.btn-submit--auto { width: auto; padding: 12px 28px; }
+.btn-cancel--auto { width: auto; padding: 12px 28px; margin-top: 0; }

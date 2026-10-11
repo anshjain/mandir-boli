@@ -4,25 +4,7 @@
 
 {% block extra_css %}
 <link href="https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel="stylesheet">
-<style>
-.req-page { padding: 32px 0 60px; max-width: 580px; margin: 0 auto; }
-.req-hero { text-align: center; margin-bottom: 22px; }
-.req-icon {
-    display: inline-grid; place-items: center;
-    width: 48px; height: 48px; border-radius: 50%;
-    background: var(--c-yellow-l); border: 0.5px solid var(--c-yellow);
-    color: var(--c-yellow-d); font-size: 20px;
-    margin-bottom: 12px;
-}
-.req-hero h1 {
-    font-family: var(--font-head);
-    font-size: 24px; font-weight: 600; color: var(--c-text);
-    margin-bottom: 4px;
-}
-.req-hero p { font-size: 13px; color: var(--c-text-2); }
-
-.form-err { font-size: 11px; color: var(--c-red); margin-top: 4px; display: block; }
-</style>
+<link rel="stylesheet" href="{% static 'css/raise_boli_request.css' %}">
 {% endblock %}
 
 {% block main %}
@@ -35,7 +17,7 @@
     </div>
 
     <div class="msg msg-info">
-        <i class="fab fa-whatsapp" style="color: var(--c-green); font-size: 16px;"></i>
+        <i class="fab fa-whatsapp raise-wa-icon"></i>
         <span>You'll receive a WhatsApp confirmation on the number you enter below.</span>
     </div>
 

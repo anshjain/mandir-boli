@@ -1,0 +1,30 @@
+/* entry.html — styles moved out of the template's inline <style> block */
+
+.entry-page { padding: 32px 0 60px; max-width: 580px; margin: 0 auto; }
+.entry-hero { text-align: center; margin-bottom: 22px; }
+.entry-icon {
+    display: inline-grid; place-items: center;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--c-yellow-l); border: 0.5px solid var(--c-yellow);
+    color: var(--c-yellow-d); font-size: 20px;
+    margin-bottom: 12px;
+}
+.entry-hero h1 {
+    font-family: var(--font-head);
+    font-size: 24px; font-weight: 600; color: var(--c-text);
+    margin-bottom: 4px;
+}
+.entry-hero p { font-size: 13px; color: var(--c-text-2); }
+
+.wa-notice {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 14px; background: var(--c-green-l);
+    border: 0.5px solid #C8DCC8; border-radius: var(--radius);
+    font-size: 13px; color: var(--c-green-d);
+    margin-bottom: 18px; flex-wrap: wrap;
+}
+.wa-notice a { color: var(--c-green-d); font-weight: 600; text-decoration: underline; }
+
+.form-err { font-size: 11px; color: var(--c-red); margin-top: 4px; display: block; }
+
+.entry-wa-icon { font-size: 18px; }

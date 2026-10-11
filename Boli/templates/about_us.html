@@ -3,74 +3,7 @@
 {% block title %}{% trans "About Us" %}{% endblock %}
 
 {% block extra_css %}
-<style>
-.about-page { padding: 28px 0 60px; }
-
-/* Two-column layout: content + promotions */
-.about-layout {
-    display: grid;
-    grid-template-columns: 1fr 300px;
-    gap: 24px;
-    align-items: start;
-}
-
-/* Left column */
-.about-hero { text-align: center; margin-bottom: 24px; }
-.about-hero .jain-sym { font-size: 44px; display: block; margin-bottom: 8px; line-height: 1; }
-.about-hero h1 { font-family: var(--font-head); font-size: 30px; font-weight: 700; color: var(--c-text); margin-bottom: 4px; }
-.about-hero p { font-size: 13px; color: var(--c-text-3); }
-
-.about-section { margin-bottom: 0; }
-.about-section h2 {
-    font-family: var(--font-head); font-size: 18px; font-weight: 700;
-    color: var(--c-text); margin-bottom: 10px; padding-bottom: 8px;
-    border-bottom: 1px solid var(--c-border);
-}
-.about-section p { font-size: 14px; color: var(--c-text-2); line-height: 1.75; margin-bottom: 10px; }
-.about-section p:last-child { margin-bottom: 0; }
-em.hl { color: var(--c-red, #9b1b1b); font-style: normal; font-weight: 600; }
-
-/* Right column — promotions */
-.about-promo-col { display: flex; flex-direction: column; gap: 12px; }
-.about-promo-label {
-    font-size: 11px; font-weight: 700; letter-spacing: 1px;
-    text-transform: uppercase; color: var(--c-text-3);
-    margin-bottom: 2px;
-}
-
-/* Promo card styles (same as home/calendar) */
-.promo-card { background: var(--c-surface); border: 0.5px solid var(--c-border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
-.promo-card-img-wrap { width: 100%; background: #0a0a0a; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; position: relative; }
-.promo-card-img-wrap img { width: 100%; max-height: 280px; object-fit: contain; display: block; transition: transform .2s ease; }
-.promo-card-img-wrap:hover img { transform: scale(1.02); }
-.promo-img-hint { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,.55); color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px; pointer-events: none; }
-.promo-lightbox { display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,.92); align-items: center; justify-content: center; padding: 16px; cursor: zoom-out; }
-.promo-lightbox.open { display: flex; }
-.promo-lightbox img { max-width: 100%; max-height: 92vh; object-fit: contain; border-radius: 6px; cursor: default; }
-.promo-lightbox-close { position: absolute; top: 14px; right: 18px; background: rgba(255,255,255,.15); border: none; color: #fff; font-size: 22px; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; }
-.promo-lightbox-close:hover { background: rgba(255,255,255,.28); }
-.promo-body { padding: 12px 14px 13px; }
-.promo-type-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 5px; font-size: 10px; font-weight: 700; letter-spacing: .4px; margin-bottom: 7px; }
-.pb-notice   { background: #dbeafe; color: #1e40af; }
-.pb-event    { background: #fef3c7; color: #b45309; }
-.pb-donation { background: #fee2e2; color: #b91c1c; }
-.pb-festival { background: #d1fae5; color: #047857; }
-.pb-other    { background: #f3f4f6; color: #374151; }
-.promo-title { font-family: var(--font-head); font-size: 14px; font-weight: 700; color: var(--c-text); margin-bottom: 6px; line-height: 1.3; }
-.promo-body-text { font-size: 12px; color: var(--c-text-2); line-height: 1.6; white-space: pre-line; }
-.promo-body-text.collapsed { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.promo-read-more { background: none; border: none; cursor: pointer; color: var(--c-green); font-size: 11px; font-weight: 600; padding: 4px 0 6px; display: block; }
-.promo-actions { display: flex; gap: 8px; margin-top: 8px; }
-.promo-cta { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 6px; background: var(--c-green); color: var(--c-white); font-size: 12px; font-weight: 600; text-decoration: none; flex: 1; justify-content: center; border: none; cursor: pointer; font-family: inherit; }
-.promo-cta:hover { opacity: .85; color: var(--c-white); }
-.promo-cta-wa { background: #22c55e; }
-.promo-empty { background: var(--c-surface); border: 0.5px dashed var(--c-border); border-radius: var(--radius-lg); padding: 18px; text-align: center; font-size: 13px; color: var(--c-text-3); }
-
-@media (max-width: 768px) {
-    .about-layout { grid-template-columns: 1fr; }
-    .about-promo-col { order: -1; } /* Show promotions above content on mobile */
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/about_us.css' %}">
 {% endblock %}
 
 {% block main %}
@@ -89,7 +22,7 @@ em.hl { color: var(--c-red, #9b1b1b); font-style: normal; font-weight: 600; }
         <div>
             <div class="card">
                 <div class="card-body">
-                    <div class="about-section" style="margin-bottom:20px;">
+                    <div class="about-section mb-20">
                         <h2>Our Story</h2>
                         <p>PunyaUday fund was established by <em class="hl">{{ mandir.name }}</em> on the day of the 50th <em class="hl">Acharya Shree Vidyasagar</em> Maharaj Diksha Divas (30th June 2018) at Sus Gaon, Pune.</p>
                         <p>The main purpose of this platform is to track funds the temple will receive in future, and to give devotees a convenient way to monitor their donations — avoiding any negligence of funds.</p>
@@ -116,7 +49,7 @@ em.hl { color: var(--c-red, #9b1b1b); font-style: normal; font-weight: 600; }
                          title="Click to view full image">
                         <img src="{{ promo.image.url }}" alt="{{ promo.title }}">
                         <span class="promo-img-hint">
-                            <i class="fas fa-expand-alt" style="font-size:9px;"></i> View full
+                            <i class="fas fa-expand-alt icon-xs"></i> View full
                         </span>
                     </div>
                     <div class="promo-lightbox" id="ab-lb-{{ forloop.counter }}"
@@ -150,7 +83,7 @@ em.hl { color: var(--c-red, #9b1b1b); font-style: normal; font-weight: 600; }
                             </button>
                         </div>
                         {# Hidden raw body — avoids unicode encoding #}
-                        <span id="ab-pbody-{{ promo.id }}" style="display:none;">{{ promo.body }}</span>
+                        <span class="is-hidden" id="ab-pbody-{{ promo.id }}">{{ promo.body }}</span>
 
                     </div>
                 </div>

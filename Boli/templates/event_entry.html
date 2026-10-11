@@ -2,14 +2,7 @@
 {% load static i18n %}
 {% block title %}{% trans "Event Registration" %}{% endblock %}
 {% block extra_css %}
-<style>
-.event-reg-page { padding: 28px 0 60px; max-width: 580px; margin: 0 auto; }
-.page-hd { margin-bottom: 20px; }
-.page-hd h1 { font-family: var(--font-head); font-size: 24px; font-weight: 700; margin-bottom: 3px; }
-.page-hd p { font-size: 13px; color: var(--c-text-3); }
-.radio-group { display: flex; gap: 20px; margin-top: 4px; }
-.radio-group label { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--c-text-2); cursor: pointer; }
-</style>
+<link rel="stylesheet" href="{% static 'css/event_entry.css' %}">
 {% endblock %}
 {% block main %}
 <div class="container">
@@ -20,7 +13,7 @@
     </div>
     <div class="card">
         <div class="card-body">
-            <form action="/action_page.php" style="border:none;">
+            <form class="event-form" action="/action_page.php">
                 <div class="form-row">
                     <div class="form-field"><label>Full Name</label><input type="text" placeholder="Your full name" required></div>
                     <div class="form-field"><label>Mobile Number</label><input type="text" placeholder="Mobile number" required></div>
@@ -54,9 +47,9 @@
                     <label>Pick-up Location</label>
                     <select><option>Location 1</option><option>Location 2</option><option>Location 3</option><option>Location 4</option></select>
                 </div>
-                <div style="display:flex;gap:10px;margin-top:6px;">
-                    <button type="button" class="btn btn-ghost" style="flex:1;" onclick="history.back()">Cancel</button>
-                    <button type="submit" class="btn btn-primary" style="flex:2;">Register</button>
+                <div class="event-actions">
+                    <button type="button" class="btn btn-ghost event-actions__cancel" onclick="history.back()">Cancel</button>
+                    <button type="submit" class="btn btn-primary event-actions__submit">Register</button>
                 </div>
             </form>
         </div>

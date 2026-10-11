@@ -4,34 +4,7 @@
 
 {% block extra_css %}
 <link href="https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel="stylesheet">
-<style>
-.entry-page { padding: 32px 0 60px; max-width: 580px; margin: 0 auto; }
-.entry-hero { text-align: center; margin-bottom: 22px; }
-.entry-icon {
-    display: inline-grid; place-items: center;
-    width: 48px; height: 48px; border-radius: 50%;
-    background: var(--c-yellow-l); border: 0.5px solid var(--c-yellow);
-    color: var(--c-yellow-d); font-size: 20px;
-    margin-bottom: 12px;
-}
-.entry-hero h1 {
-    font-family: var(--font-head);
-    font-size: 24px; font-weight: 600; color: var(--c-text);
-    margin-bottom: 4px;
-}
-.entry-hero p { font-size: 13px; color: var(--c-text-2); }
-
-.wa-notice {
-    display: flex; align-items: center; gap: 10px;
-    padding: 11px 14px; background: var(--c-green-l);
-    border: 0.5px solid #C8DCC8; border-radius: var(--radius);
-    font-size: 13px; color: var(--c-green-d);
-    margin-bottom: 18px; flex-wrap: wrap;
-}
-.wa-notice a { color: var(--c-green-d); font-weight: 600; text-decoration: underline; }
-
-.form-err { font-size: 11px; color: var(--c-red); margin-top: 4px; display: block; }
-</style>
+<link rel="stylesheet" href="{% static 'css/entry.css' %}">
 {% endblock %}
 
 {% block main %}
@@ -45,7 +18,7 @@
 
     {% if sms_message %}
     <div class="wa-notice">
-        <i class="fab fa-whatsapp" style="font-size:18px;"></i>
+        <i class="fab fa-whatsapp entry-wa-icon"></i>
         <span>
             Notify <strong>{{ phone_number }}</strong> via
             <a href="https://wa.me/+91{{ phone_number }}?text={{ sms_message|urlencode }}" target="_blank">WhatsApp</a> or
@@ -53,7 +26,7 @@
         </span>
     </div>
     {% else %}
-    <div class="msg msg-info" style="margin-bottom:14px;">
+    <div class="msg msg-info mb-14">
         <i class="fas fa-info-circle"></i>
         <span>Default mobile: 9999988888 — used when devotee has no number on file</span>
     </div>

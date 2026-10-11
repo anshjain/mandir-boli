@@ -6,15 +6,7 @@
 <script>(function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(d.getElementById(id))return;js=d.createElement(s);js.id=id;js.src='https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v3.1&appId=1775753022522826&autoLogAppEvents=1';fjs.parentNode.insertBefore(js,fjs);}(document,'script','facebook-jssdk'));</script>
 {% endblock %}
 {% block extra_css %}
-<style>
-.event-page { padding: 28px 0 60px; max-width: 720px; margin: 0 auto; }
-.page-hd { margin-bottom: 20px; }
-.page-hd h1 { font-family: var(--font-head); font-size: 26px; font-weight: 700; margin-bottom: 3px; }
-.page-hd p { font-size: 13px; color: var(--c-text-3); }
-.event-body { font-size: 14px; color: var(--c-text-2); line-height: 1.75; }
-.event-body p { margin-bottom: 12px; }
-.event-meta { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--c-border); font-size: 13px; color: var(--c-text-3); }
-</style>
+<link rel="stylesheet" href="{% static 'css/event_details.css' %}">
 {% endblock %}
 {% block main %}
 <div class="container">
@@ -29,7 +21,7 @@
             <div class="event-meta">
                 {{ event.mandir.committee_name }}
                 {% if event.description %}
-                <div style="margin-top:10px;">
+                <div class="mt-10">
                     <div class="fb-like" data-href="http://punyaudayfund.herokuapp.com/events/1/#event_details"
                          data-layout="button_count" data-action="like" data-size="small"
                          data-show-faces="true" data-share="true"></div>
